@@ -15,6 +15,9 @@ enum PreviewContainer {
         }
     }()
 
+    /// Speech coordinator backed by the preview container (really speaks in live previews).
+    static let coordinator = SpeechCoordinator(speech: SpeechService(), context: shared.mainContext)
+
     /// First seeded environment of the given name, for previewing a single board.
     static func environment(named name: String) -> SpeakEnvironment {
         let descriptor = FetchDescriptor<SpeakEnvironment>(predicate: #Predicate { $0.name == name })

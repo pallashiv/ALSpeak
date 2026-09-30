@@ -22,6 +22,22 @@ enum TokenResolver {
         return result as String
     }
 
+    /// Text suitable for speaking: known tokens are filled in and any still-missing tokens
+    /// are dropped, so the synthesizer never reads out "{caregiverName}".
+    /// e.g. "Get my caregiver {caregiverName}" → "Get my caregiver".
+    static func resolveForSpeech(_ text: String, tokens: [String: String]) -> String {
+        let resolved = resolve(text, tokens: tokens) as NSString
+        let stripped = regex.stringByReplacingMatches(
+            in: resolved as String,
+            range: NSRange(location: 0, length: resolved.length),
+            withTemplate: ""
+        )
+        return stripped
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .replacingOccurrences(of: #"\s+([.,!?;:])"#, with: "$1", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     /// Token names used in `text`, in order of appearance, without duplicates.
     static func tokenNames(in text: String) -> [String] {
         let ns = text as NSString

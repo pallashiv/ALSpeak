@@ -5,19 +5,24 @@ import os
 @main
 struct ALSpeakApp: App {
     private let container: ModelContainer
+    /// App-wide speech entry point, shared with every view through the environment.
+    @State private var coordinator: SpeechCoordinator
 
     init() {
-        container = Self.makeContainer()
+        let container = Self.makeContainer()
         do {
             try SeedDataLoader.seedIfNeeded(context: container.mainContext)
         } catch {
             Logger.app.error("Seeding failed: \(error.localizedDescription)")
         }
+        self.container = container
+        _coordinator = State(initialValue: SpeechCoordinator(speech: SpeechService(), context: container.mainContext))
     }
 
     var body: some Scene {
         WindowGroup {
             RootView()
+                .environment(coordinator)
         }
         .modelContainer(container)
     }

@@ -1,29 +1,38 @@
 import SwiftUI
 import SwiftData
 
-/// Phase (a) placeholder: lists the seeded library so the data layer can be verified
-/// on device. Replaced by the environment picker in phase (b).
+/// Top-level layout: navigation (home → phrase board) with the spoken-phrase overlay on top.
+///
+/// Phase (d) adds the Quick Respond bar and Emergency button *outside* the overlay, so
+/// they stay reachable even while a phrase is displayed full-screen.
 struct RootView: View {
-    @Query(sort: \SpeakEnvironment.sortOrder) private var environments: [SpeakEnvironment]
+    @Environment(SpeechCoordinator.self) private var coordinator
 
     var body: some View {
         NavigationStack {
-            List(environments) { environment in
-                Section {
-                    ForEach(environment.sortedCategories) { category in
-                        LabeledContent(category.name, value: "\(category.phrases.count) phrases")
-                    }
-                } header: {
-                    Label(environment.name, systemImage: environment.symbolName)
-                        .font(.headline)
+            EnvironmentPickerView()
+                .navigationDestination(for: SpeakEnvironment.self) { environment in
+                    PhraseBoardView(environment: environment)
                 }
-            }
-            .navigationTitle("ALSpeak")
         }
+        .overlay {
+            if let text = coordinator.displayedText {
+                SpokenPhraseOverlay(
+                    text: text,
+                    isSpeaking: coordinator.speech.isSpeaking,
+                    onRepeat: coordinator.repeatDisplayed,
+                    onStop: coordinator.stopSpeaking,
+                    onClose: coordinator.dismissDisplay
+                )
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeOut(duration: 0.15), value: coordinator.displayedText)
     }
 }
 
 #Preview {
     RootView()
         .modelContainer(PreviewContainer.shared)
+        .environment(PreviewContainer.coordinator)
 }

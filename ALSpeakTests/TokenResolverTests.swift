@@ -38,6 +38,12 @@ struct TokenResolverTests {
         #expect(TokenResolver.resolve("¡Hola {name}! 👋", tokens: ["name": "José"]) == "¡Hola José! 👋")
     }
 
+    @Test func speechFormDropsMissingTokensAndTidiesSpacing() {
+        #expect(TokenResolver.resolveForSpeech("Get my caregiver {caregiverName}", tokens: [:]) == "Get my caregiver")
+        #expect(TokenResolver.resolveForSpeech("Hi {name}, I'm {me}.", tokens: ["me": "Sam"]) == "Hi, I'm Sam.")
+        #expect(TokenResolver.resolveForSpeech("{name}", tokens: [:]).isEmpty)
+    }
+
     @Test func listsTokenNamesInOrderWithoutDuplicates() {
         #expect(TokenResolver.tokenNames(in: "{b} {a} {b}") == ["b", "a"])
     }
