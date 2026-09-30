@@ -1,0 +1,270 @@
+{
+  "version": 1,
+  "emergencyPhrase": "I need help, please come here now.",
+  "quickResponses": [
+    "Yes",
+    "No",
+    "Maybe",
+    "Thank you",
+    "Wait a moment, please",
+    "Could you repeat that?",
+    "I need help"
+  ],
+  "tokens": {
+    "name": "",
+    "favoriteDrink": "water",
+    "caregiverName": ""
+  },
+  "environments": [
+    {
+      "name": "Home",
+      "symbol": "house.fill",
+      "color": "blue",
+      "categories": [
+        {
+          "name": "Comfort",
+          "phrases": [
+            "I'm uncomfortable, can you help me move?",
+            "Could you adjust my pillow?",
+            "I'm too hot",
+            "I'm too cold",
+            "Could you turn the lights down?",
+            "I'd like to lie down",
+            "I'd like to sit up"
+          ]
+        },
+        {
+          "name": "Food & Drink",
+          "phrases": [
+            "I'm hungry",
+            "I'm thirsty",
+            "Could I have some {favoriteDrink}?",
+            "I've had enough, thank you",
+            "Could you cut this into smaller pieces?"
+          ]
+        },
+        {
+          "name": "Activities",
+          "phrases": [
+            "Could you turn on the TV?",
+            "Could you change the channel?",
+            "Could you charge my device?",
+            "I'd like some quiet time",
+            "I'd like to go outside for a bit"
+          ]
+        },
+        {
+          "name": "Personal Care",
+          "phrases": [
+            "I need to use the bathroom",
+            "I'd like to wash up",
+            "Could you scratch my nose?",
+            "I'm tired, I'd like to rest",
+            "Could you help me with my glasses?"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Doctor",
+      "symbol": "cross.case.fill",
+      "color": "teal",
+      "categories": [
+        {
+          "name": "Symptoms",
+          "phrases": [
+            "I'm in pain",
+            "The pain is here",
+            "It's getting worse",
+            "It's about the same",
+            "It's getting better",
+            "I'm having trouble breathing",
+            "I'm having trouble swallowing",
+            "I feel dizzy"
+          ]
+        },
+        {
+          "name": "Communication",
+          "phrases": [
+            { "text": "I have ALS. I understand everything, but speaking is hard for me.", "showEverywhere": true },
+            "Please speak to me directly",
+            "Please give me time to answer",
+            "Yes-or-no questions are easiest for me",
+            "Could you write that down?"
+          ]
+        },
+        {
+          "name": "Questions",
+          "phrases": [
+            "What are the side effects?",
+            "How long will this take?",
+            "When should I come back?",
+            "Can you explain that again?",
+            "Could you talk to my caregiver too?"
+          ]
+        },
+        {
+          "name": "Care Needs",
+          "phrases": [
+            "I need to be repositioned",
+            "I need suctioning",
+            "Please check my breathing machine",
+            "I need my medication",
+            "Please be careful moving me"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Restaurant",
+      "symbol": "fork.knife",
+      "color": "orange",
+      "categories": [
+        {
+          "name": "Ordering",
+          "phrases": [
+            "I'd like to order now",
+            "Could I see the menu?",
+            "I'll have what I'm pointing to",
+            "Could I have {favoriteDrink}, please?",
+            "Could I have that without sauce?",
+            "Nothing else for me, thanks"
+          ]
+        },
+        {
+          "name": "Needs",
+          "phrases": [
+            "I need help cutting my food",
+            "Could I have a straw, please?",
+            "Could I have extra napkins?",
+            "I need soft food, please",
+            "Could we have a table with more space for my wheelchair?"
+          ]
+        },
+        {
+          "name": "Questions",
+          "phrases": [
+            "What do you recommend?",
+            "Is this easy to chew?",
+            "Does this have any allergens?",
+            "Where is the accessible restroom?"
+          ]
+        },
+        {
+          "name": "Payment",
+          "phrases": [
+            "Could you check the bill, please?",
+            "Could we have the bill, please?",
+            "I'll pay by card",
+            "Could you split the bill?",
+            "Thank you, the meal was great"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Out & About",
+      "symbol": "figure.roll",
+      "color": "green",
+      "categories": [
+        {
+          "name": "Getting Around",
+          "phrases": [
+            "Excuse me, could I get past?",
+            "Where is the elevator?",
+            "Is there an accessible entrance?",
+            "Could you hold the door, please?",
+            "Could you help me reach that?"
+          ]
+        },
+        {
+          "name": "Shopping",
+          "phrases": [
+            "I'm just looking, thank you",
+            "How much is this?",
+            "Do you have this in another size?",
+            "I'd like to buy this",
+            "Could you put it in my bag?"
+          ]
+        },
+        {
+          "name": "Explaining",
+          "phrases": [
+            "I use this app to speak",
+            "Please be patient with me, I'm typing",
+            "I can hear you fine",
+            "I don't need help right now, thank you"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Family & Friends",
+      "symbol": "person.2.fill",
+      "color": "purple",
+      "categories": [
+        {
+          "name": "Feelings",
+          "phrases": [
+            { "text": "I love you", "isFavorite": true },
+            "I'm happy to see you",
+            "I'm feeling tired today",
+            "I'm feeling good today",
+            "I'm frustrated",
+            "That made me laugh"
+          ]
+        },
+        {
+          "name": "Conversation",
+          "phrases": [
+            { "text": "My name is {name}", "showEverywhere": true },
+            "How are you?",
+            "Tell me about your day",
+            "What's new with you?",
+            "I have something to say, give me a moment",
+            "Let's change the subject"
+          ]
+        },
+        {
+          "name": "Plans",
+          "phrases": [
+            "Can you stay a little longer?",
+            "When will you visit again?",
+            "Let's watch something together",
+            "Could you call me later?"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Emergency",
+      "symbol": "exclamationmark.triangle.fill",
+      "color": "red",
+      "isEmergency": true,
+      "categories": [
+        {
+          "name": "Urgent",
+          "phrases": [
+            "Call 911",
+            "I can't breathe",
+            "I'm choking",
+            "I've fallen",
+            "I'm in severe pain",
+            "Get my caregiver {caregiverName}"
+          ]
+        },
+        {
+          "name": "Caregiver",
+          "phrases": [
+            "Please reposition me",
+            "My equipment is beeping",
+            "I need suctioning now",
+            "Please check my breathing mask",
+            "I need my medication now",
+            "Please stay with me"
+          ]
+        }
+      ]
+    }
+  ]
+}
