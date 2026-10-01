@@ -56,6 +56,13 @@ struct QuickRespondBar: View {
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Quick replies")
 
+            // Keep SOS clearly apart from the replies, so reaching for "No" can't land on it.
+            Rectangle()
+                .fill(Palette.hairline)
+                .frame(width: 1, height: buttonHeight * 0.6)
+                .padding(.horizontal, 8)
+                .accessibilityHidden(true)
+
             EmergencyButton(requiresHold: settings?.emergencyRequiresHold ?? true) {
                 coordinator.speakEmergency()
             }
