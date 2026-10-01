@@ -29,12 +29,12 @@ struct PhraseBoardViewModelTests {
         return environment
     }
 
-    @Test func allShowsPinnedThenCategories() {
+    @Test func allShowsFavoritesThenCategories() {
         let favorite = Phrase(text: "Fav", isFavorite: true)
         let env = makeEnvironment("E", categories: [("One", [Phrase(text: "a"), favorite]), ("Two", [Phrase(text: "b")])])
 
         let sections = viewModel.sections(for: env, everywhere: [])
-        #expect(sections.map(\.title) == ["Pinned", "One", "Two"])
+        #expect(sections.map(\.title) == ["Favorites", "One", "Two"])
         #expect(sections[0].phrases.map(\.text) == ["Fav"])
         #expect(sections[1].phrases.map(\.text) == ["a", "Fav"])
     }
@@ -69,7 +69,7 @@ struct PhraseBoardViewModelTests {
     @Test func pinnedSectionHasNoCategory() {
         let env = makeEnvironment("E", categories: [("One", [Phrase(text: "a", isFavorite: true)])])
         let pinned = viewModel.sections(for: env, everywhere: []).first
-        #expect(pinned?.id == PhraseBoardViewModel.pinnedSectionID)
+        #expect(pinned?.id == PhraseBoardViewModel.favoritesSectionID)
         #expect(pinned?.category == nil)
     }
 
@@ -81,6 +81,58 @@ struct PhraseBoardViewModelTests {
         let sections = viewModel.sections(for: env, everywhere: [])
         #expect(sections.map(\.title) == ["Two"])
         #expect(sections[0].phrases.map(\.text) == ["b"])
+    }
+
+    // MARK: Tabs (one category at a time)
+
+    @Test func tabsAreFavoritesThenCategories() {
+        let env = makeEnvironment("E", categories: [("One", [Phrase(text: "a", isFavorite: true)]), ("Two", [])])
+        let tabs = viewModel.tabs(for: env, everywhere: [])
+        #expect(tabs.map(\.title) == ["Favorites", "One", "Two"])
+    }
+
+    @Test func noFavoritesTabWhenNothingIsPinned() {
+        let env = makeEnvironment("E", categories: [("One", [Phrase(text: "a")])])
+        #expect(viewModel.tabs(for: env, everywhere: []).map(\.title) == ["One"])
+    }
+
+    @Test func firstTabIsSelectedByDefault() {
+        let env = makeEnvironment("E", categories: [("One", [Phrase(text: "a", isFavorite: true)])])
+        #expect(viewModel.selectedTab(for: env, everywhere: []) == .favorites)
+        #expect(viewModel.selectedSection(for: env, everywhere: [])?.phrases.map(\.text) == ["a"])
+        #expect(viewModel.selectedSection(for: env, everywhere: [])?.category == nil)
+    }
+
+    @Test func placeWithoutOwnFavoritesOpensOnFirstCategory() {
+        // Only a "show everywhere" phrase from elsewhere: the Favorites tab exists but the
+        // board opens on the place's own first category.
+        let env = makeEnvironment("E", categories: [("One", [Phrase(text: "a")])])
+        let shared = Phrase(text: "I have ALS", showEverywhere: true)
+        _ = makeEnvironment("Other", categories: [("X", [shared])])
+
+        #expect(viewModel.tabs(for: env, everywhere: [shared]).map(\.title) == ["Favorites", "One"])
+        #expect(viewModel.selectedTab(for: env, everywhere: [shared]) == .category(env.sortedCategories[0].id))
+    }
+
+    @Test func pickedTabIsShown() throws {
+        let env = makeEnvironment("E", categories: [("One", [Phrase(text: "a")]), ("Two", [Phrase(text: "b")])])
+        let two = try #require(env.sortedCategories.last)
+        viewModel.filter = .category(two.id)
+        let section = viewModel.selectedSection(for: env, everywhere: [])
+        #expect(section?.phrases.map(\.text) == ["b"])
+        #expect(section?.category === two)
+    }
+
+    @Test func vanishedTabFallsBackToFirstTab() {
+        let env = makeEnvironment("E", categories: [("One", [Phrase(text: "a")])])
+        // e.g. Favorites was selected and the last favorite was removed.
+        viewModel.filter = .favorites
+        #expect(viewModel.selectedTab(for: env, everywhere: []) == .category(env.sortedCategories[0].id))
+    }
+
+    @Test func boardWithNoCategoriesHasNoSelection() {
+        let env = makeEnvironment("E", categories: [])
+        #expect(viewModel.selectedSection(for: env, everywhere: []) == nil)
     }
 
     @Test func staleCategoryFilterFallsBackToAll() {

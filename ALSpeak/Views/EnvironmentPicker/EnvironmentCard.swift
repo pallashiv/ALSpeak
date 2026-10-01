@@ -1,21 +1,25 @@
 import SwiftUI
 
-/// A large tappable card for one environment on the home screen.
+/// A large, soft card for one place on the home screen: an icon in a white circle above
+/// the place's name.
 struct EnvironmentCard: View {
     let name: String
     let symbolName: String
     let colorKey: String
 
     @Environment(\.appTheme) private var theme
-    @ScaledMetric(relativeTo: .title2) private var minHeight: CGFloat = 128
-    @ScaledMetric(relativeTo: .title2) private var iconSize: CGFloat = 40
+    @ScaledMetric(relativeTo: .title2) private var minHeight: CGFloat = 148
+    @ScaledMetric(relativeTo: .title2) private var iconSize: CGFloat = 28
+    @ScaledMetric(relativeTo: .title2) private var iconCircle: CGFloat = 60
 
     var body: some View {
-        let colors = Palette.controlColors(tint: Palette.environmentColor(colorKey), theme: theme)
-        VStack(alignment: .leading, spacing: 12) {
+        let colors = Palette.controlColors(colorKey: colorKey, theme: theme)
+        VStack(alignment: .leading, spacing: 14) {
             Image(systemName: symbolName)
                 .font(.system(size: iconSize, weight: .semibold))
                 .foregroundStyle(colors.accent)
+                .frame(width: iconCircle, height: iconCircle)
+                .background(theme == .highContrast ? Color.clear : Palette.surface, in: Circle())
                 .accessibilityHidden(true)
             Spacer(minLength: 0)
             Text(name)
@@ -24,10 +28,10 @@ struct EnvironmentCard: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .foregroundStyle(colors.foreground)
-        .padding(18)
+        .padding(20)
         .frame(maxWidth: .infinity, minHeight: minHeight, alignment: .leading)
-        .controlBackground(colors, cornerRadius: 20)
-        .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .controlBackground(colors, cornerRadius: 28)
+        .contentShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(name)
         .accessibilityHint("Opens phrases for \(name)")
@@ -48,5 +52,6 @@ struct EnvironmentCard: View {
         .environment(\.appTheme, .highContrast)
     }
     .padding()
-    .background(.gray)
+    .background(Palette.background)
+    .fontDesign(.rounded)
 }

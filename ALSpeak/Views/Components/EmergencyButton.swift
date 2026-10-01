@@ -14,7 +14,7 @@ struct EmergencyButton: View {
     let action: () -> Void
 
     @State private var progress: CGFloat = 0
-    @ScaledMetric(relativeTo: .headline) private var size: CGFloat = 64
+    @ScaledMetric(relativeTo: .headline) private var size: CGFloat = 60
 
     var body: some View {
         label
@@ -30,18 +30,19 @@ struct EmergencyButton: View {
     }
 
     private var label: some View {
-        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
-        return VStack(spacing: 2) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(compact ? .body : .title2)
-            if !compact {
-                Text(requiresHold ? "HOLD" : "HELP")
-                    .font(.caption.weight(.heavy))
+        let shape = RoundedRectangle(cornerRadius: compact ? 12 : 20, style: .continuous)
+        return VStack(spacing: 0) {
+            Image(systemName: "sos")
+                .font(compact ? .body.weight(.bold) : .title3.weight(.heavy))
+            if !compact && requiresHold {
+                Text("hold")
+                    .font(.caption2.weight(.semibold))
+                    .opacity(0.9)
             }
         }
         .foregroundStyle(.white)
         .frame(minWidth: compact ? 44 : size, minHeight: compact ? 36 : size)
-        .padding(.horizontal, compact ? 8 : 0)
+        .padding(.horizontal, compact ? 8 : 4)
         .background {
             shape.fill(Palette.environmentColor("red"))
             // A lighter band fills from the bottom up while holding.
@@ -53,7 +54,6 @@ struct EmergencyButton: View {
             }
             .clipShape(shape)
         }
-        .overlay(shape.strokeBorder(.white.opacity(0.6), lineWidth: 2))
     }
 }
 

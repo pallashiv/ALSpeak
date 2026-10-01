@@ -1,13 +1,14 @@
 import SwiftUI
 
-/// A large, high-contrast button that speaks a phrase.
+/// A large, calm button that speaks a phrase: dark text on a soft tint of the place's color.
 ///
 /// Activation follows the user's touch mode (tap, hold or dwell — see `selectable`). In tap
 /// mode it's a standard `Button`, which already ignores touches that drag off it or turn
 /// into a scroll, so a finger sliding across the grid doesn't speak.
 struct PhraseButton: View {
     let text: String
-    var tint: Color
+    /// Palette key ("blue", "gold"…) that tints the button.
+    var colorKey: String
     var isFavorite = false
     /// Tokens (e.g. "name") this phrase uses that have no value yet.
     var missingTokens: [String] = []
@@ -18,9 +19,9 @@ struct PhraseButton: View {
     let action: () -> Void
 
     @Environment(\.appTheme) private var theme
-    @ScaledMetric(relativeTo: .title3) private var minHeight: CGFloat = 88
+    @ScaledMetric(relativeTo: .title3) private var minHeight: CGFloat = 96
 
-    private static let cornerRadius: CGFloat = 16
+    static let cornerRadius: CGFloat = 22
 
     var body: some View {
         Group {
@@ -37,32 +38,23 @@ struct PhraseButton: View {
     }
 
     private var label: some View {
-        let colors = Palette.controlColors(tint: tint, theme: theme)
-        return HStack(alignment: .top, spacing: 8) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(text)
-                    .font(.title3.weight(.semibold))
-                    .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true)
-                if !missingTokens.isEmpty {
-                    Label("Set \(missingTokens.map(TokenKey.displayName).joined(separator: ", ").lowercased()) in Settings",
-                          systemImage: "exclamationmark.circle")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(colors.accent)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            if isFavorite {
-                Image(systemName: "star.fill")
-                    .font(.body)
+        let colors = Palette.controlColors(colorKey: colorKey, theme: theme)
+        return VStack(alignment: .leading, spacing: 6) {
+            Text(text)
+                .font(.title3.weight(.semibold))
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+            if !missingTokens.isEmpty {
+                Label("Add \(missingTokens.map(TokenKey.displayName).joined(separator: ", ").lowercased()) in Settings",
+                      systemImage: "info.circle")
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(colors.accent)
-                    .accessibilityHidden(true)
             }
         }
         .foregroundStyle(colors.foreground)
-        .padding(16)
-        .frame(maxWidth: .infinity, minHeight: minHeight, alignment: .topLeading)
+        .padding(18)
+        // Fills the row height in a grid so neighbouring cards line up.
+        .frame(maxWidth: .infinity, minHeight: minHeight, maxHeight: .infinity, alignment: .topLeading)
         .controlBackground(colors, cornerRadius: Self.cornerRadius)
         .contentShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
     }
@@ -75,27 +67,27 @@ struct PressFeedbackButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.96 : 1)
-            .brightness(configuration.isPressed ? -0.12 : 0)
+            .brightness(configuration.isPressed ? -0.06 : 0)
             .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
 #Preview("Standard") {
     VStack(spacing: 12) {
-        PhraseButton(text: "I'd like to order now", tint: Palette.environmentColor("orange")) {}
-        PhraseButton(text: "I love you", tint: Palette.pinned, isFavorite: true) {}
-        PhraseButton(text: "My name is {name}", tint: Palette.environmentColor("purple"),
-                     missingTokens: ["name"]) {}
+        PhraseButton(text: "I'd like to order now", colorKey: "orange") {}
+        PhraseButton(text: "I love you", colorKey: Palette.favoriteKey, isFavorite: true) {}
+        PhraseButton(text: "My name is {name}", colorKey: "purple", missingTokens: ["name"]) {}
     }
     .padding()
+    .background(Palette.background)
+    .fontDesign(.rounded)
 }
 
 #Preview("High contrast, hold to select") {
     VStack(spacing: 12) {
-        PhraseButton(text: "I'd like to order now", tint: Palette.environmentColor("orange")) {}
-        PhraseButton(text: "I love you", tint: Palette.pinned, isFavorite: true) {}
-        PhraseButton(text: "My name is {name}", tint: Palette.environmentColor("purple"),
-                     missingTokens: ["name"]) {}
+        PhraseButton(text: "I'd like to order now", colorKey: "orange") {}
+        PhraseButton(text: "I love you", colorKey: Palette.favoriteKey, isFavorite: true) {}
+        PhraseButton(text: "My name is {name}", colorKey: "purple", missingTokens: ["name"]) {}
     }
     .padding()
     .background(.black)

@@ -1,7 +1,8 @@
 import SwiftUI
 import SwiftData
 
-/// Home screen: favorites (one tap to speak) above a grid of environment cards.
+/// Home screen: "Where are you?" with a card per place, then favorites (one tap to speak).
+/// The only other control is a settings button, so the screen stays calm.
 struct EnvironmentPickerView: View {
     @Query(sort: \SpeakEnvironment.sortOrder) private var environments: [SpeakEnvironment]
     @Query(filter: #Predicate<Phrase> { $0.isFavorite }) private var favorites: [Phrase]
@@ -10,34 +11,15 @@ struct EnvironmentPickerView: View {
     @Environment(\.modelContext) private var context
     @State private var isShowingSettings = false
     @State private var viewModel = EnvironmentPickerViewModel()
-    @State private var isManagingEnvironments = false
 
-    @ScaledMetric(relativeTo: .title2) private var cardMinWidth: CGFloat = 160
-    @ScaledMetric(relativeTo: .title3) private var phraseMinWidth: CGFloat = 220
+    @ScaledMetric(relativeTo: .title2) private var cardMinWidth: CGFloat = 150
+    @ScaledMetric(relativeTo: .title3) private var phraseMinWidth: CGFloat = 160
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                let homeFavorites = viewModel.homeFavorites(favorites)
-                if !homeFavorites.isEmpty {
-                    section("Favorites") {
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: phraseMinWidth), spacing: 12)], spacing: 12) {
-                            ForEach(homeFavorites) { phrase in
-                                PhraseButton(
-                                    text: coordinator.displayText(for: phrase),
-                                    tint: Palette.pinned,
-                                    isFavorite: true,
-                                    missingTokens: coordinator.missingTokens(for: phrase)
-                                ) {
-                                    coordinator.speak(phrase)
-                                }
-                            }
-                        }
-                    }
-                }
-
+            VStack(alignment: .leading, spacing: 32) {
                 section("Where are you?") {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: cardMinWidth), spacing: 12)], spacing: 12) {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: cardMinWidth), spacing: 14)], spacing: 14) {
                         ForEach(viewModel.visibleEnvironments(environments)) { environment in
                             NavigationLink(value: environment) {
                                 EnvironmentCard(
@@ -50,31 +32,40 @@ struct EnvironmentPickerView: View {
                         }
                     }
                 }
+
+                let homeFavorites = viewModel.homeFavorites(favorites)
+                if !homeFavorites.isEmpty {
+                    section("Favorites") {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: phraseMinWidth), spacing: 12)], spacing: 12) {
+                            ForEach(homeFavorites) { phrase in
+                                PhraseButton(
+                                    text: coordinator.displayText(for: phrase),
+                                    colorKey: Palette.favoriteKey,
+                                    isFavorite: true,
+                                    missingTokens: coordinator.missingTokens(for: phrase)
+                                ) {
+                                    coordinator.speak(phrase)
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            .padding(16)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24)
         }
-        .navigationTitle("ALSpeak")
+        .background(Palette.background)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
+            ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     isShowingSettings = true
                 } label: {
-                    Label("Settings", systemImage: "gearshape.fill")
-                        .labelStyle(.titleAndIcon)
+                    Image(systemName: "gearshape.fill")
+                        .font(.title3)
                 }
-                .font(.headline)
-                .accessibilityHint("Voice, personal details, emergency message and quick replies")
+                .accessibilityLabel("Settings")
+                .accessibilityHint("Voice, places, personal details, emergency message and quick replies")
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Edit Places") {
-                    isManagingEnvironments = true
-                }
-                .font(.headline)
-                .accessibilityHint("Add, rename, reorder or hide places")
-            }
-        }
-        .sheet(isPresented: $isManagingEnvironments) {
-            ManageEnvironmentsView()
         }
         .sheet(isPresented: $isShowingSettings) {
             SettingsView(settings: UserSettings.current(in: context))
@@ -82,9 +73,9 @@ struct EnvironmentPickerView: View {
     }
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             Text(title)
-                .font(.title2.weight(.bold))
+                .font(.largeTitle.weight(.bold))
                 .accessibilityAddTraits(.isHeader)
             content()
         }
@@ -98,4 +89,5 @@ struct EnvironmentPickerView: View {
     }
     .modelContainer(PreviewContainer.shared)
     .environment(PreviewContainer.coordinator)
+    .fontDesign(.rounded)
 }

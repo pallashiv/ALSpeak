@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Full-screen display of the phrase just spoken, so the listener can read it too.
+/// Full-screen display of the phrase just spoken, so the listener can read it too:
+/// calm and light normally, red for emergencies.
 /// Tapping anywhere closes it; it also closes on its own after speech ends.
 struct SpokenPhraseOverlay: View {
     let text: String
@@ -13,6 +14,9 @@ struct SpokenPhraseOverlay: View {
 
     @ScaledMetric(relativeTo: .body) private var controlHeight: CGFloat = 64
 
+    /// Text color: white on the red emergency screen, otherwise the normal text color.
+    private var textColor: Color { isEmergency ? .white : Palette.overlayText }
+
     var body: some View {
         ZStack {
             (isEmergency ? Palette.environmentColor("red") : Palette.overlayBackground)
@@ -23,15 +27,19 @@ struct SpokenPhraseOverlay: View {
             VStack(spacing: 24) {
                 Spacer(minLength: 0)
                 if isEmergency {
-                    Label("EMERGENCY", systemImage: "exclamationmark.triangle.fill")
+                    Label("Emergency", systemImage: "sos")
                         .font(.title.weight(.heavy))
-                        .foregroundStyle(Palette.overlayText)
+                } else {
+                    Image(systemName: isSpeaking ? "speaker.wave.3.fill" : "speaker.wave.2")
+                        .font(.title)
+                        .foregroundStyle(Palette.accent("blue"))
+                        .symbolEffect(.variableColor.iterative, isActive: isSpeaking)
+                        .accessibilityHidden(true)
                 }
                 Text(text)
                     .font(.system(size: 56, weight: .bold, design: .rounded))
                     .minimumScaleFactor(0.3)
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(Palette.overlayText)
                     .frame(maxWidth: .infinity)
                     .accessibilityAddTraits(.isHeader)
                 Spacer(minLength: 0)
@@ -43,6 +51,7 @@ struct SpokenPhraseOverlay: View {
                     overlayButton("Close", systemImage: "xmark", action: onClose)
                 }
             }
+            .foregroundStyle(textColor)
             .padding(24)
         }
         // Not modal: VoiceOver users have just heard the phrase, so focus stays on the
@@ -57,8 +66,15 @@ struct SpokenPhraseOverlay: View {
             Label(title, systemImage: systemImage)
                 .font(.title3.weight(.semibold))
                 .frame(maxWidth: .infinity, minHeight: controlHeight)
-                .foregroundStyle(.black)
-                .background(.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .foregroundStyle(isEmergency ? Color.black : .primary)
+                .background(isEmergency ? Color.white : Palette.surface,
+                            in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .overlay {
+                    if !isEmergency {
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .strokeBorder(Palette.hairline, lineWidth: 1)
+                    }
+                }
         }
         .buttonStyle(PressFeedbackButtonStyle())
     }

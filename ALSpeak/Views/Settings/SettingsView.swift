@@ -15,6 +15,7 @@ struct SettingsView: View {
     @State private var isAddingDetail = false
     @State private var newDetailLabel = ""
     @State private var replyEditor: ReplyDraft?
+    @State private var isManagingPlaces = false
 
     struct ReplyDraft: Identifiable {
         let id = UUID()
@@ -26,12 +27,15 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                placesSection
                 voiceSection
                 touchAndDisplaySection
                 personalDetailsSection
                 emergencySection
                 quickRepliesSection
             }
+            .scrollContentBackground(.hidden)
+            .background(Palette.background)
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -47,6 +51,9 @@ struct SettingsView: View {
                     }
                     .fontWeight(.bold)
                 }
+            }
+            .sheet(isPresented: $isManagingPlaces) {
+                ManageEnvironmentsView()
             }
             .alert("Add a personal detail", isPresented: $isAddingDetail) {
                 TextField("For example: Pet's name", text: $newDetailLabel)
@@ -65,6 +72,22 @@ struct SettingsView: View {
                 Button("Save") { saveReply() }
                 Button("Cancel", role: .cancel) {}
             }
+        }
+    }
+
+    // MARK: Places
+
+    private var placesSection: some View {
+        Section {
+            Button {
+                isManagingPlaces = true
+            } label: {
+                Label("Edit places", systemImage: "square.grid.2x2.fill")
+                    .font(.headline)
+                    .frame(minHeight: 44)
+            }
+        } footer: {
+            Text("Add, rename, reorder or hide the places on the home screen. To change a place's phrases, open it and tap Edit.")
         }
     }
 
@@ -127,7 +150,7 @@ struct SettingsView: View {
             }
 
             // Practice target that behaves exactly like a phrase button.
-            PhraseButton(text: "Try it: Hello!", tint: Palette.environmentColor("blue")) {
+            PhraseButton(text: "Try it: Hello!", colorKey: "blue") {
                 coordinator.speak(text: "Hello!", showOverlay: false)
             }
             .environment(\.selectionStyle, SelectionStyle(mode: settings.touchMode, duration: settings.dwellDuration))

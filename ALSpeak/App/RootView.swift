@@ -47,13 +47,46 @@ struct RootView: View {
             // The place on screen when typing started, so "Save" can file the phrase there.
             TypeToSpeakView(currentEnvironment: path.last)
         }
+        .fontDesign(.rounded)
+        .tint(Palette.accent("blue"))
         .environment(\.appTheme, theme)
         .environment(\.selectionStyle, selectionStyle)
         .preferredColorScheme(theme == .highContrast ? .dark : nil)
         .task(id: settings?.keepScreenOn) {
             UIApplication.shared.isIdleTimerDisabled = settings?.keepScreenOn ?? true
         }
+        #if DEBUG
+        .task {
+            openPlaceFromLaunchArguments()
+            showSpokenFromLaunchArguments()
+        }
+        #endif
     }
+
+    #if DEBUG
+    @Environment(\.modelContext) private var context
+
+    /// `-OpenPlace "Restaurant"` opens that board on launch (for screenshots and UI tests).
+    private func openPlaceFromLaunchArguments() {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let index = arguments.firstIndex(of: LaunchArgument.openPlace),
+              arguments.indices.contains(index + 1) else { return }
+        let name = arguments[index + 1]
+        let descriptor = FetchDescriptor<SpeakEnvironment>(predicate: #Predicate { $0.name == name })
+        if let environment = try? context.fetch(descriptor).first {
+            path = [environment]
+        }
+    }
+
+    /// `-ShowSpoken "text"` speaks and displays text on launch (for screenshots).
+    private func showSpokenFromLaunchArguments() {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let index = arguments.firstIndex(of: LaunchArgument.showSpoken),
+              arguments.indices.contains(index + 1) else { return }
+        coordinator.minimumDisplayTime = .seconds(30)
+        coordinator.speak(text: arguments[index + 1])
+    }
+    #endif
 
     /// Full-screen display for the listener, or a small banner if the user turned that off.
     /// Emergency alerts are always full-screen.

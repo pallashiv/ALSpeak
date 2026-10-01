@@ -1,9 +1,9 @@
 import SwiftUI
 import SwiftData
 
-/// The phrase grid for one environment. Tapping a phrase speaks it immediately.
+/// The phrases for one place, one category at a time. Tapping a phrase speaks it.
 ///
-/// In edit mode, tapping a phrase opens its editor instead, each category gets an
+/// In edit mode, tapping a phrase opens its editor instead, the category gets an
 /// "Add phrase" tile, and categories can be organized.
 struct PhraseBoardView: View {
     let environment: SpeakEnvironment
@@ -15,39 +15,38 @@ struct PhraseBoardView: View {
     @State private var editingPhrase: PhraseEditorViewModel?
     @State private var isOrganizing = false
 
-    @ScaledMetric(relativeTo: .title3) private var phraseMinWidth: CGFloat = 220
-    @ScaledMetric(relativeTo: .title3) private var phraseMinHeight: CGFloat = 88
-
-    private var tint: Color { Palette.environmentColor(environment.colorKey) }
+    @ScaledMetric(relativeTo: .title3) private var phraseMinWidth: CGFloat = 160
+    @ScaledMetric(relativeTo: .title3) private var phraseMinHeight: CGFloat = 96
 
     var body: some View {
-        let sections = viewModel.sections(for: environment, everywhere: everywherePhrases, includeEmpty: isEditing)
+        let tabs = viewModel.tabs(for: environment, everywhere: everywherePhrases)
+        let selected = viewModel.selectedTab(for: environment, everywhere: everywherePhrases)
+        let section = viewModel.selectedSection(for: environment, everywhere: everywherePhrases)
 
         VStack(spacing: 0) {
-            CategoryChipBar(categories: environment.sortedCategories, filter: $viewModel.filter, tint: tint)
-            Divider()
+            CategoryChipBar(tabs: tabs, selected: selected, colorKey: environment.colorKey) {
+                viewModel.filter = $0
+            }
 
             if isEditing {
                 editingBanner
             }
 
-            if sections.isEmpty {
-                ContentUnavailableView {
-                    Label("No phrases yet", systemImage: "text.bubble")
-                } description: {
-                    Text("Tap Edit to add phrases to \(environment.name).")
-                }
-            } else {
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 24) {
-                        ForEach(sections) { section in
-                            sectionView(section)
-                        }
+            ScrollView {
+                if let section, !(section.phrases.isEmpty && !isEditing) {
+                    phraseGrid(section)
+                        .padding(16)
+                } else {
+                    ContentUnavailableView {
+                        Label("No phrases here yet", systemImage: "text.bubble")
+                    } description: {
+                        Text("Tap Edit to add some.")
                     }
-                    .padding(16)
+                    .padding(.top, 60)
                 }
             }
         }
+        .background(Palette.background)
         .navigationTitle(environment.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -76,59 +75,55 @@ struct PhraseBoardView: View {
                 isOrganizing = true
             }
             .buttonStyle(.borderedProminent)
-            .tint(tint)
+            .tint(Palette.environmentColor(environment.colorKey))
             .controlSize(.large)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .background(Color.yellow.opacity(0.25))
+        .background(Palette.soft(Palette.favoriteKey))
     }
 
-    private func sectionView(_ section: PhraseSection) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(section.title)
-                .font(.title3.weight(.bold))
-                .accessibilityAddTraits(.isHeader)
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: phraseMinWidth), spacing: 12)], spacing: 12) {
-                ForEach(section.phrases) { phrase in
-                    PhraseButton(
-                        text: coordinator.displayText(for: phrase),
-                        tint: section.id == PhraseBoardViewModel.pinnedSectionID ? Palette.pinned : tint,
-                        isFavorite: phrase.isFavorite,
-                        missingTokens: coordinator.missingTokens(for: phrase),
-                        accessibilityHint: isEditing ? "Edits this phrase" : "Speaks this phrase aloud",
-                        usesTouchMode: !isEditing
-                    ) {
-                        if isEditing {
-                            editingPhrase = PhraseEditorViewModel(phrase: phrase)
-                        } else {
-                            coordinator.speak(phrase)
-                        }
+    private func phraseGrid(_ section: PhraseSection) -> some View {
+        let colorKey = section.category == nil ? Palette.favoriteKey : environment.colorKey
+        return LazyVGrid(columns: [GridItem(.adaptive(minimum: phraseMinWidth), spacing: 12)], spacing: 12) {
+            ForEach(section.phrases) { phrase in
+                PhraseButton(
+                    text: coordinator.displayText(for: phrase),
+                    colorKey: colorKey,
+                    isFavorite: phrase.isFavorite,
+                    missingTokens: coordinator.missingTokens(for: phrase),
+                    accessibilityHint: isEditing ? "Edits this phrase" : "Speaks this phrase aloud",
+                    usesTouchMode: !isEditing
+                ) {
+                    if isEditing {
+                        editingPhrase = PhraseEditorViewModel(phrase: phrase)
+                    } else {
+                        coordinator.speak(phrase)
                     }
                 }
+            }
 
-                if isEditing, let category = section.category {
-                    addPhraseTile(category)
-                }
+            if isEditing, let category = section.category {
+                addPhraseTile(category)
             }
         }
-        // Lets Switch Control scan section by section instead of phrase by phrase.
+        // Lets Switch Control scan the grid as a group.
         .accessibilityElement(children: .contain)
+        .accessibilityLabel(section.title)
     }
 
     private func addPhraseTile(_ category: PhraseCategory) -> some View {
-        Button {
+        let tint = Palette.accent(environment.colorKey)
+        let shape = RoundedRectangle(cornerRadius: PhraseButton.cornerRadius, style: .continuous)
+        return Button {
             editingPhrase = PhraseEditorViewModel(newIn: category)
         } label: {
             Label("Add phrase", systemImage: "plus")
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(tint)
                 .frame(maxWidth: .infinity, minHeight: phraseMinHeight)
-                .background {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .strokeBorder(tint, style: StrokeStyle(lineWidth: 2, dash: [8, 6]))
-                }
-                .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(shape.strokeBorder(tint, style: StrokeStyle(lineWidth: 2, dash: [8, 6])))
+                .contentShape(shape)
         }
         .buttonStyle(PressFeedbackButtonStyle())
         .accessibilityLabel("Add phrase to \(category.name)")
@@ -141,6 +136,7 @@ struct PhraseBoardView: View {
     }
     .modelContainer(PreviewContainer.shared)
     .environment(PreviewContainer.coordinator)
+    .fontDesign(.rounded)
 }
 
 #Preview("Family & Friends") {
@@ -149,4 +145,5 @@ struct PhraseBoardView: View {
     }
     .modelContainer(PreviewContainer.shared)
     .environment(PreviewContainer.coordinator)
+    .fontDesign(.rounded)
 }

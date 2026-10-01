@@ -50,6 +50,10 @@ struct ALSpeakApp: App {
 enum LaunchArgument {
     /// Use a fresh in-memory store (set by the UI tests).
     static let uiTesting = "-UITesting"
+    /// Debug only: open the named place on launch, e.g. `-OpenPlace Restaurant`.
+    static let openPlace = "-OpenPlace"
+    /// Debug only: speak and display text on launch, e.g. `-ShowSpoken "Hello"`.
+    static let showSpoken = "-ShowSpoken"
 }
 
 extension Logger {

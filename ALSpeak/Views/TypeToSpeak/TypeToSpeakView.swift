@@ -145,7 +145,7 @@ struct TypeToSpeakView: View {
                 .font(.title3.weight(.bold))
                 .accessibilityAddTraits(.isHeader)
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                PhraseButton(text: item.text, tint: Palette.pinned) {
+                PhraseButton(text: item.text, colorKey: "gray") {
                     if let phrase = item.phrase {
                         coordinator.speak(phrase, showOverlay: false)
                     } else {

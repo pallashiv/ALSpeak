@@ -1,32 +1,83 @@
 import SwiftUI
+import UIKit
 
-/// App colors. Environment colors are dark enough that white text on them meets
-/// WCAG AAA (7:1) contrast, so phrase buttons stay readable in bright light.
+/// App colors.
 ///
-/// The high-contrast theme replaces colored fills with black, outlined in yellow or white,
-/// with white/yellow text — the classic low-vision AAC scheme.
+/// The standard look is calm and light: a warm off-white background, soft pastel cards
+/// tinted by each place's color, and dark text (well above WCAG AAA 7:1 on every tint).
+/// Each color key has:
+/// - a **base** color (strong; white text on it passes AAA) for selected tabs and buttons,
+/// - an **accent** for icons (lightened in dark mode),
+/// - a **soft** tint for card backgrounds.
+///
+/// The high-contrast theme replaces the pastels with black, outlined in yellow, with
+/// white/yellow text — the classic low-vision AAC scheme.
 enum Palette {
-    static func environmentColor(_ key: String) -> Color {
-        switch key {
-        case "blue": Color(red: 0.05, green: 0.30, blue: 0.62)
-        case "teal": Color(red: 0.00, green: 0.38, blue: 0.40)
-        case "orange": Color(red: 0.60, green: 0.26, blue: 0.00)
-        case "green": Color(red: 0.10, green: 0.38, blue: 0.16)
-        case "purple": Color(red: 0.35, green: 0.16, blue: 0.53)
-        case "red": Color(red: 0.66, green: 0.00, blue: 0.10)
-        default: Color(red: 0.25, green: 0.25, blue: 0.28)
+    private struct RGB {
+        let r: CGFloat, g: CGFloat, b: CGFloat
+
+        func mixed(with other: RGB, amount: CGFloat) -> RGB {
+            RGB(r: r + (other.r - r) * amount, g: g + (other.g - g) * amount, b: b + (other.b - b) * amount)
         }
+
+        var uiColor: UIColor { UIColor(red: r, green: g, blue: b, alpha: 1) }
+    }
+
+    private static let white = RGB(r: 1, g: 1, b: 1)
+    private static let darkSurface = RGB(r: 0.11, g: 0.11, b: 0.12)
+
+    private static let bases: [String: RGB] = [
+        "blue": RGB(r: 0.05, g: 0.30, b: 0.62),
+        "teal": RGB(r: 0.00, g: 0.38, b: 0.40),
+        "orange": RGB(r: 0.60, g: 0.26, b: 0.00),
+        "green": RGB(r: 0.10, g: 0.38, b: 0.16),
+        "purple": RGB(r: 0.35, g: 0.16, b: 0.53),
+        "red": RGB(r: 0.66, g: 0.00, b: 0.10),
+        "gold": RGB(r: 0.55, g: 0.38, b: 0.00),
+        "gray": RGB(r: 0.25, g: 0.25, b: 0.28),
+    ]
+
+    private static func base(_ key: String) -> RGB {
+        bases[key] ?? bases["gray"]!
+    }
+
+    private static func dynamic(light: RGB, dark: RGB) -> Color {
+        Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? dark.uiColor : light.uiColor })
+    }
+
+    /// Strong color for a key. White text on it passes WCAG AAA.
+    static func environmentColor(_ key: String) -> Color {
+        Color(uiColor: base(key).uiColor)
+    }
+
+    /// Icon color: the base color in light mode, a lighter version on dark backgrounds.
+    static func accent(_ key: String) -> Color {
+        dynamic(light: base(key), dark: base(key).mixed(with: white, amount: 0.45))
+    }
+
+    /// Pastel card background for a key.
+    static func soft(_ key: String) -> Color {
+        dynamic(light: base(key).mixed(with: white, amount: 0.87),
+                dark: base(key).mixed(with: darkSurface, amount: 0.72))
     }
 
     /// Keys a user can pick when creating an environment.
     static let environmentColorKeys = ["blue", "teal", "orange", "green", "purple", "red", "gray"]
 
-    /// Pinned/favorite phrases use a neutral dark tone so they stand apart from the category color.
-    static let pinned = Color(red: 0.16, green: 0.16, blue: 0.20)
+    /// Color key used for favorites and phrases shown in every place.
+    static let favoriteKey = "gold"
 
-    /// Full-screen spoken-phrase overlay.
-    static let overlayBackground = Color.black
-    static let overlayText = Color.white
+    // MARK: Surfaces
+
+    /// Warm off-white page background.
+    static let background = dynamic(light: RGB(r: 0.969, g: 0.961, b: 0.949), dark: RGB(r: 0.06, g: 0.06, b: 0.07))
+    /// Cards and bars that sit on the background.
+    static let surface = dynamic(light: white, dark: darkSurface)
+    static let hairline = Color.primary.opacity(0.08)
+
+    /// Full-screen spoken-phrase display.
+    static let overlayBackground = background
+    static let overlayText = Color.primary
 
     // MARK: High contrast
 
@@ -34,19 +85,19 @@ enum Palette {
     static let highContrastAccent = Color(red: 1.0, green: 0.84, blue: 0.04)
     static let highContrastBorderWidth: CGFloat = 3
 
-    /// Colors for a filled, speaking control (phrase button, environment card).
+    /// Colors for a filled control (phrase button, environment card).
     struct ControlColors {
         let fill: Color
         let foreground: Color
-        /// Accent for icons / secondary marks.
+        /// For icons and secondary marks.
         let accent: Color
         let border: Color?
     }
 
-    static func controlColors(tint: Color, theme: AppTheme) -> ControlColors {
+    static func controlColors(colorKey: String, theme: AppTheme) -> ControlColors {
         switch theme {
         case .standard:
-            ControlColors(fill: tint, foreground: .white, accent: .white, border: nil)
+            ControlColors(fill: soft(colorKey), foreground: .primary, accent: accent(colorKey), border: nil)
         case .highContrast:
             ControlColors(fill: .black, foreground: .white, accent: highContrastAccent, border: highContrastAccent)
         }

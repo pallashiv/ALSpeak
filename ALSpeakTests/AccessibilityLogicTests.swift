@@ -40,11 +40,11 @@ struct ThemeTests {
     }
 
     @Test func highContrastControlsAreOutlinedBlack() {
-        let colors = Palette.controlColors(tint: Palette.environmentColor("blue"), theme: .highContrast)
+        let colors = Palette.controlColors(colorKey: "blue", theme: .highContrast)
         #expect(colors.fill == .black)
         #expect(colors.border == Palette.highContrastAccent)
 
-        let standard = Palette.controlColors(tint: Palette.environmentColor("blue"), theme: .standard)
+        let standard = Palette.controlColors(colorKey: "blue", theme: .standard)
         #expect(standard.border == nil)
     }
 }
