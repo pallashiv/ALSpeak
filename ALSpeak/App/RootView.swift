@@ -18,7 +18,14 @@ struct RootView: View {
     @Query private var settingsRecords: [UserSettings]
 
     @State private var path: [SpeakEnvironment] = []
-    @State private var isTyping = false
+    /// Set when type-to-speak opens, recording which place was on screen at that moment.
+    /// (Passing `path.last` straight into the sheet reads a stale value.)
+    @State private var typingSession: TypingSession?
+
+    struct TypingSession: Identifiable {
+        let id = UUID()
+        let environment: SpeakEnvironment?
+    }
 
     private var settings: UserSettings? { settingsRecords.first }
 
@@ -41,11 +48,15 @@ struct RootView: View {
             .overlay { spokenPhraseDisplay }
             .animation(.easeOut(duration: 0.15), value: coordinator.displayedText)
 
-            QuickRespondBar(onType: { isTyping = true })
+            QuickRespondBar(onType: { typingSession = TypingSession(environment: path.last) })
+                // The bar is always on screen, so like Apple's tab bars it stops growing at
+                // the largest standard text size; its buttons offer the Large Content Viewer
+                // instead (press and hold to see the label large).
+                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         }
-        .sheet(isPresented: $isTyping) {
+        .sheet(item: $typingSession) { session in
             // The place on screen when typing started, so "Save" can file the phrase there.
-            TypeToSpeakView(currentEnvironment: path.last)
+            TypeToSpeakView(currentEnvironment: session.environment)
         }
         .fontDesign(.rounded)
         .tint(Palette.accent("blue"))

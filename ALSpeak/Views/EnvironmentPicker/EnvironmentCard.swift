@@ -8,9 +8,15 @@ struct EnvironmentCard: View {
     let colorKey: String
 
     @Environment(\.appTheme) private var theme
-    @ScaledMetric(relativeTo: .title2) private var minHeight: CGFloat = 148
-    @ScaledMetric(relativeTo: .title2) private var iconSize: CGFloat = 28
-    @ScaledMetric(relativeTo: .title2) private var iconCircle: CGFloat = 60
+    @ScaledMetric(relativeTo: .title2) private var scaledMinHeight: CGFloat = 148
+    @ScaledMetric(relativeTo: .title2) private var scaledIconSize: CGFloat = 28
+    @ScaledMetric(relativeTo: .title2) private var scaledIconCircle: CGFloat = 60
+
+    // The name grows freely with Dynamic Type; the icon and empty space grow only so far,
+    // so at the largest sizes the card's height goes to the text, not to decoration.
+    private var minHeight: CGFloat { min(scaledMinHeight, 200) }
+    private var iconSize: CGFloat { min(scaledIconSize, 40) }
+    private var iconCircle: CGFloat { min(scaledIconCircle, 84) }
 
     var body: some View {
         let colors = Palette.controlColors(colorKey: colorKey, theme: theme)

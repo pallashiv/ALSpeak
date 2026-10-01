@@ -13,6 +13,8 @@ struct SpokenPhraseOverlay: View {
     let onClose: () -> Void
 
     @ScaledMetric(relativeTo: .body) private var controlHeight: CGFloat = 64
+    /// Very large for the listener, and still growing with Dynamic Type.
+    @ScaledMetric(relativeTo: .largeTitle) private var phraseSize: CGFloat = 56
 
     /// Text color: white on the red emergency screen, otherwise the normal text color.
     private var textColor: Color { isEmergency ? .white : Palette.overlayText }
@@ -37,7 +39,7 @@ struct SpokenPhraseOverlay: View {
                         .accessibilityHidden(true)
                 }
                 Text(text)
-                    .font(.system(size: 56, weight: .bold, design: .rounded))
+                    .font(.system(size: phraseSize, weight: .bold, design: .rounded))
                     .minimumScaleFactor(0.3)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)

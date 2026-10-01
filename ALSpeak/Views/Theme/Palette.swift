@@ -67,6 +67,39 @@ enum Palette {
     /// Color key used for favorites and phrases shown in every place.
     static let favoriteKey = "gold"
 
+    // MARK: Contrast checking
+
+    /// Raw sRGB components behind the palette, for contrast checks in tests.
+    enum Swatch {
+        case base, accent, soft, background, surface
+    }
+
+    static func components(_ swatch: Swatch, key: String = "gray", dark: Bool) -> (r: CGFloat, g: CGFloat, b: CGFloat) {
+        let rgb: RGB = switch swatch {
+        case .base: base(key)
+        case .accent: dark ? base(key).mixed(with: white, amount: 0.45) : base(key)
+        case .soft: dark ? base(key).mixed(with: darkSurface, amount: 0.72) : base(key).mixed(with: white, amount: 0.87)
+        case .background: dark ? RGB(r: 0.06, g: 0.06, b: 0.07) : RGB(r: 0.969, g: 0.961, b: 0.949)
+        case .surface: dark ? darkSurface : white
+        }
+        return (rgb.r, rgb.g, rgb.b)
+    }
+
+    /// WCAG 2 contrast ratio between two sRGB colors (1…21).
+    static func contrastRatio(_ a: (r: CGFloat, g: CGFloat, b: CGFloat), _ b: (r: CGFloat, g: CGFloat, b: CGFloat)) -> Double {
+        func luminance(_ c: (r: CGFloat, g: CGFloat, b: CGFloat)) -> Double {
+            func channel(_ v: CGFloat) -> Double {
+                let v = Double(v)
+                return v <= 0.03928 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4)
+            }
+            return 0.2126 * channel(c.r) + 0.7152 * channel(c.g) + 0.0722 * channel(c.b)
+        }
+        let (l1, l2) = (luminance(a), luminance(b))
+        return (max(l1, l2) + 0.05) / (min(l1, l2) + 0.05)
+    }
+
+    static let allColorKeys: [String] = bases.keys.sorted()
+
     // MARK: Surfaces
 
     /// Warm off-white page background.

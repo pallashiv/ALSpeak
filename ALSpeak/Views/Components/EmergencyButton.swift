@@ -27,6 +27,10 @@ struct EmergencyButton: View {
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { action() }
             .accessibilityInputLabels(["Emergency", "Help", "Emergency help"])
+            .accessibilityShowsLargeContentViewer {
+                Image(systemName: "sos")
+                Text("Emergency help")
+            }
     }
 
     private var label: some View {

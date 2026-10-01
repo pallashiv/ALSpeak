@@ -60,8 +60,7 @@ struct QuickRespondBar: View {
             Rectangle().fill(Palette.hairline).frame(height: 1)
         }
         .accessibilityElement(children: .contain)
-        // The bar is always on screen; past this size it would crowd out the phrases.
-        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+        // Note: RootView caps this bar's Dynamic Type size (see there).
     }
 
     // MARK: Bar
@@ -111,6 +110,10 @@ struct QuickRespondBar: View {
             .contentShape(Capsule())
         }
         .buttonStyle(PressFeedbackButtonStyle())
+        .accessibilityShowsLargeContentViewer {
+            Image(systemName: "ellipsis")
+            Text(isExpanded ? "Close" : "More")
+        }
         .accessibilityLabel(isExpanded ? "Close more replies" : "More replies")
         .accessibilityHint(isExpanded ? "" : "Shows all quick replies and typing")
         .accessibilityInputLabels(["More", "More replies"])
@@ -174,16 +177,22 @@ struct QuickRespondBar: View {
         let style = Self.style(for: reply)
         let cornerRadius: CGFloat = fillsWidth ? 18 : buttonHeight / 2
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-        return HStack(spacing: 6) {
-            if let symbol = style.symbol {
-                Image(systemName: symbol)
-                    .font(.headline.weight(.bold))
-                    .foregroundStyle(isHighContrast ? Palette.highContrastAccent : Palette.accent(style.colorKey))
-            }
-            Text(reply)
-                .lineLimit(2)
-                .minimumScaleFactor(0.85)
-                .multilineTextAlignment(.center)
+        let icon = style.symbol.map {
+            Image(systemName: $0)
+                .font(.headline.weight(.bold))
+                .foregroundStyle(isHighContrast ? Palette.highContrastAccent : Palette.accent(style.colorKey))
+        }
+        let text = Text(reply)
+            .lineLimit(fillsWidth ? 2 : 1)
+            .multilineTextAlignment(.center)
+        // With big text the label might not fit: fall back to the text alone, then to the
+        // ✓ / ✕ alone, rather than truncating ("Y…") or wrapping into a sliver.
+        // `fixedSize` keeps each candidate at its full width, so ViewThatFits picks one
+        // that really fits instead of squeezing the text by a fraction of a point.
+        return ViewThatFits(in: .horizontal) {
+            HStack(spacing: 6) { icon; text }.fixedSize()
+            text.fixedSize()
+            if let icon { icon } else { text.minimumScaleFactor(0.6) }
         }
         .font(.headline)
         .padding(.horizontal, 12)
@@ -202,6 +211,11 @@ struct QuickRespondBar: View {
         }
         .accessibilityLabel(reply)
         .accessibilityHint("Speaks this reply")
+        .accessibilityRemoveTraits(.isSelected)
+        .accessibilityShowsLargeContentViewer {
+            if let symbol = style.symbol { Image(systemName: symbol) }
+            Text(reply)
+        }
     }
 
     private func setExpanded(_ expanded: Bool) {
