@@ -9,6 +9,7 @@ struct QuickRespondBar: View {
 
     @Query private var settingsRecords: [UserSettings]
     @Environment(SpeechCoordinator.self) private var coordinator
+    @Environment(\.appTheme) private var theme
 
     @ScaledMetric(relativeTo: .headline) private var buttonHeight: CGFloat = 64
 
@@ -45,26 +46,30 @@ struct QuickRespondBar: View {
         .padding(.vertical, 8)
         .background(.bar, ignoresSafeAreaEdges: .bottom)
         .overlay(alignment: .top) { Divider() }
+        .accessibilityElement(children: .contain)
+        // The bar is always on screen; past this size it would crowd out the phrases.
+        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
     }
 
     private func replyButton(_ reply: String) -> some View {
-        Button {
-            coordinator.speak(text: reply)
-        } label: {
-            Text(reply)
-                .font(.headline)
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 16)
-                .frame(minWidth: buttonHeight, minHeight: buttonHeight)
-                .foregroundStyle(Color(.label))
-                .background(Color(.secondarySystemBackground),
-                            in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .strokeBorder(Color(.separator), lineWidth: 1))
-        }
-        .buttonStyle(PressFeedbackButtonStyle())
-        .accessibilityHint("Speaks this reply")
+        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+        let isHighContrast = theme == .highContrast
+        return Text(reply)
+            .font(.headline)
+            .lineLimit(2)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 16)
+            .frame(minWidth: buttonHeight, minHeight: buttonHeight)
+            .foregroundStyle(isHighContrast ? Color.white : Color(.label))
+            .background(isHighContrast ? Color.black : Color(.secondarySystemBackground), in: shape)
+            .overlay(shape.strokeBorder(isHighContrast ? Color.white : Color(.separator),
+                                        lineWidth: isHighContrast ? Palette.highContrastBorderWidth : 1))
+            .contentShape(shape)
+            .selectable(cornerRadius: 14) {
+                coordinator.speak(text: reply)
+            }
+            .accessibilityLabel(reply)
+            .accessibilityHint("Speaks this reply")
     }
 }
 

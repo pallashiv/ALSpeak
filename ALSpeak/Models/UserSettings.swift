@@ -29,6 +29,12 @@ enum AppTheme: String, CaseIterable, Codable, Identifiable {
 
     var id: String { rawValue }
 
+    /// The theme to actually use: high contrast if the user chose it in ALSpeak or turned on
+    /// Increase Contrast in iOS Settings.
+    static func resolve(_ chosen: AppTheme, systemIncreasedContrast: Bool) -> AppTheme {
+        systemIncreasedContrast ? .highContrast : chosen
+    }
+
     var displayName: String {
         switch self {
         case .standard: "Standard"
@@ -75,6 +81,10 @@ final class UserSettings {
     /// Seconds a finger/pointer must stay on a button in hold or dwell mode.
     var dwellDuration: Double = 0.8
     var themeRaw: String = AppTheme.standard.rawValue
+    /// Show the spoken phrase full-screen for the listener (otherwise a small banner).
+    var showFullScreenPhrase: Bool = true
+    /// Stop the screen from locking mid-conversation.
+    var keepScreenOn: Bool = true
 
     // MARK: Bookkeeping
 

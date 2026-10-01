@@ -27,6 +27,7 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 voiceSection
+                touchAndDisplaySection
                 personalDetailsSection
                 emergencySection
                 quickRepliesSection
@@ -96,6 +97,65 @@ struct SettingsView: View {
             Text("Voice")
         } footer: {
             Text("Speech plays even when the phone is on silent. The phone's own volume buttons still set the overall loudness.")
+        }
+    }
+
+    // MARK: Touch & display
+
+    private var touchAndDisplaySection: some View {
+        Section {
+            Picker("Selecting a phrase", selection: $settings.touchMode) {
+                ForEach(TouchMode.allCases) { mode in
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(mode.displayName).font(.headline)
+                        Text(Self.touchModeDescription(mode))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                    .tag(mode)
+                }
+            }
+            .pickerStyle(.inline)
+
+            if settings.touchMode != .tap {
+                Stepper(value: $settings.dwellDuration, in: 0.3...3.0, step: 0.1) {
+                    LabeledContent(settings.touchMode == .hold ? "Hold time" : "Dwell time",
+                                   value: String(format: "%.1f seconds", settings.dwellDuration))
+                }
+                .frame(minHeight: 44)
+            }
+
+            // Practice target that behaves exactly like a phrase button.
+            PhraseButton(text: "Try it: Hello!", tint: Palette.environmentColor("blue")) {
+                coordinator.speak(text: "Hello!", showOverlay: false)
+            }
+            .environment(\.selectionStyle, SelectionStyle(mode: settings.touchMode, duration: settings.dwellDuration))
+            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+
+            Picker("Theme", selection: $settings.theme) {
+                ForEach(AppTheme.allCases) { theme in
+                    Text(theme.displayName).tag(theme)
+                }
+            }
+            .frame(minHeight: 44)
+
+            Toggle("Show spoken phrase full screen", isOn: $settings.showFullScreenPhrase)
+                .frame(minHeight: 44)
+            Toggle("Keep screen on", isOn: $settings.keepScreenOn)
+                .frame(minHeight: 44)
+        } header: {
+            Text("Touch & display")
+        } footer: {
+            Text("High contrast also turns on automatically when Increase Contrast is on in iOS Settings → Accessibility. A second tap within half a second is ignored, to filter out tremor.")
+        }
+    }
+
+    static func touchModeDescription(_ mode: TouchMode) -> String {
+        switch mode {
+        case .tap: "Speak as soon as a phrase is tapped."
+        case .hold: "Press and hold until the button fills. Lifting early cancels, so brushes and tremors don't speak."
+        case .dwell: "For head, eye or AssistiveTouch pointers: rest the pointer on a phrase until it fills. Taps still work."
         }
     }
 

@@ -45,8 +45,10 @@ struct SpokenPhraseOverlay: View {
             }
             .padding(24)
         }
+        // Not modal: VoiceOver users have just heard the phrase, so focus stays on the
+        // board and they can go straight on to the next phrase. Escape (two-finger
+        // scrub) closes it.
         .accessibilityElement(children: .contain)
-        .accessibilityAddTraits(.isModal)
         .accessibilityAction(.escape, onClose)
     }
 

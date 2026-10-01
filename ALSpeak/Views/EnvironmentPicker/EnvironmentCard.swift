@@ -6,13 +6,16 @@ struct EnvironmentCard: View {
     let symbolName: String
     let colorKey: String
 
+    @Environment(\.appTheme) private var theme
     @ScaledMetric(relativeTo: .title2) private var minHeight: CGFloat = 128
     @ScaledMetric(relativeTo: .title2) private var iconSize: CGFloat = 40
 
     var body: some View {
+        let colors = Palette.controlColors(tint: Palette.environmentColor(colorKey), theme: theme)
         VStack(alignment: .leading, spacing: 12) {
             Image(systemName: symbolName)
                 .font(.system(size: iconSize, weight: .semibold))
+                .foregroundStyle(colors.accent)
                 .accessibilityHidden(true)
             Spacer(minLength: 0)
             Text(name)
@@ -20,10 +23,10 @@ struct EnvironmentCard: View {
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .foregroundStyle(.white)
+        .foregroundStyle(colors.foreground)
         .padding(18)
         .frame(maxWidth: .infinity, minHeight: minHeight, alignment: .leading)
-        .background(Palette.environmentColor(colorKey), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .controlBackground(colors, cornerRadius: 20)
         .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(name)
@@ -33,9 +36,17 @@ struct EnvironmentCard: View {
 }
 
 #Preview {
-    HStack {
-        EnvironmentCard(name: "Restaurant", symbolName: "fork.knife", colorKey: "orange")
-        EnvironmentCard(name: "Emergency", symbolName: "exclamationmark.triangle.fill", colorKey: "red")
+    VStack {
+        HStack {
+            EnvironmentCard(name: "Restaurant", symbolName: "fork.knife", colorKey: "orange")
+            EnvironmentCard(name: "Emergency", symbolName: "exclamationmark.triangle.fill", colorKey: "red")
+        }
+        HStack {
+            EnvironmentCard(name: "Restaurant", symbolName: "fork.knife", colorKey: "orange")
+            EnvironmentCard(name: "Emergency", symbolName: "exclamationmark.triangle.fill", colorKey: "red")
+        }
+        .environment(\.appTheme, .highContrast)
     }
     .padding()
+    .background(.gray)
 }

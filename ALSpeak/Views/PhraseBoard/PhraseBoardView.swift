@@ -96,7 +96,8 @@ struct PhraseBoardView: View {
                         tint: section.id == PhraseBoardViewModel.pinnedSectionID ? Palette.pinned : tint,
                         isFavorite: phrase.isFavorite,
                         missingTokens: coordinator.missingTokens(for: phrase),
-                        accessibilityHint: isEditing ? "Edits this phrase" : "Speaks this phrase aloud"
+                        accessibilityHint: isEditing ? "Edits this phrase" : "Speaks this phrase aloud",
+                        usesTouchMode: !isEditing
                     ) {
                         if isEditing {
                             editingPhrase = PhraseEditorViewModel(phrase: phrase)
@@ -111,6 +112,8 @@ struct PhraseBoardView: View {
                 }
             }
         }
+        // Lets Switch Control scan section by section instead of phrase by phrase.
+        .accessibilityElement(children: .contain)
     }
 
     private func addPhraseTile(_ category: PhraseCategory) -> some View {

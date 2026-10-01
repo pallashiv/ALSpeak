@@ -6,7 +6,11 @@ struct CategoryChipBar: View {
     @Binding var filter: PhraseBoardViewModel.Filter
     let tint: Color
 
+    @Environment(\.appTheme) private var theme
     @ScaledMetric(relativeTo: .headline) private var chipHeight: CGFloat = 60
+
+    /// In high contrast: yellow when selected, outlined black otherwise.
+    private var accent: Color { theme == .highContrast ? Palette.highContrastAccent : tint }
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -21,6 +25,8 @@ struct CategoryChipBar: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Categories")
+        // Keep chips usable at the largest text sizes without pushing phrases off screen.
+        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
     }
 
     private func chip(_ title: String, value: PhraseBoardViewModel.Filter) -> some View {
@@ -32,10 +38,10 @@ struct CategoryChipBar: View {
                 .font(.headline)
                 .padding(.horizontal, 20)
                 .frame(minWidth: 72, minHeight: chipHeight)
-                .foregroundStyle(isSelected ? .white : tint)
+                .foregroundStyle(isSelected ? (theme == .highContrast ? Color.black : .white) : accent)
                 .background {
-                    Capsule().fill(isSelected ? tint : Color(.systemBackground))
-                    Capsule().strokeBorder(tint, lineWidth: 2)
+                    Capsule().fill(isSelected ? accent : Color(.systemBackground))
+                    Capsule().strokeBorder(accent, lineWidth: theme == .highContrast ? Palette.highContrastBorderWidth : 2)
                 }
         }
         .buttonStyle(PressFeedbackButtonStyle())

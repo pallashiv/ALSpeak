@@ -32,7 +32,9 @@ struct ALSpeakApp: App {
     /// launches and speaks, rather than crashing.
     private static func makeContainer() -> ModelContainer {
         do {
-            return try AppSchema.makeContainer()
+            // UI tests start from a fresh, seeded library every launch.
+            let isUITesting = ProcessInfo.processInfo.arguments.contains(LaunchArgument.uiTesting)
+            return try AppSchema.makeContainer(inMemory: isUITesting)
         } catch {
             Logger.app.fault("Persistent store failed, using in-memory store: \(error.localizedDescription)")
             do {
@@ -42,6 +44,12 @@ struct ALSpeakApp: App {
             }
         }
     }
+}
+
+/// Launch arguments understood by the app.
+enum LaunchArgument {
+    /// Use a fresh in-memory store (set by the UI tests).
+    static let uiTesting = "-UITesting"
 }
 
 extension Logger {
