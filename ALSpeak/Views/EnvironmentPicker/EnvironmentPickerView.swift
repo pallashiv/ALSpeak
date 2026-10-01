@@ -8,6 +8,7 @@ struct EnvironmentPickerView: View {
 
     @Environment(SpeechCoordinator.self) private var coordinator
     @State private var viewModel = EnvironmentPickerViewModel()
+    @State private var isManagingEnvironments = false
 
     @ScaledMetric(relativeTo: .title2) private var cardMinWidth: CGFloat = 160
     @ScaledMetric(relativeTo: .title3) private var phraseMinWidth: CGFloat = 220
@@ -51,6 +52,18 @@ struct EnvironmentPickerView: View {
             .padding(16)
         }
         .navigationTitle("ALSpeak")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Edit Places") {
+                    isManagingEnvironments = true
+                }
+                .font(.headline)
+                .accessibilityHint("Add, rename, reorder or hide places")
+            }
+        }
+        .sheet(isPresented: $isManagingEnvironments) {
+            ManageEnvironmentsView()
+        }
     }
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {

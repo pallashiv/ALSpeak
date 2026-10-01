@@ -6,6 +6,8 @@ struct PhraseSection: Identifiable {
     let id: String
     let title: String
     let phrases: [Phrase]
+    /// The category this section shows; nil for the Pinned section.
+    var category: PhraseCategory? = nil
 }
 
 /// Decides which phrases the board shows, and in what order.
@@ -34,11 +36,17 @@ final class PhraseBoardViewModel {
         return (favorites + shared).filter { seen.insert($0.id).inserted }
     }
 
-    func sections(for environment: SpeakEnvironment, everywhere: [Phrase]) -> [PhraseSection] {
+    /// - Parameter includeEmpty: Show categories with no phrases (used in edit mode so the
+    ///   caregiver can add to them).
+    func sections(
+        for environment: SpeakEnvironment,
+        everywhere: [Phrase],
+        includeEmpty: Bool = false
+    ) -> [PhraseSection] {
         let categories = environment.sortedCategories
 
         if case .category(let id) = filter, let category = categories.first(where: { $0.id == id }) {
-            return [PhraseSection(id: id.uuidString, title: category.name, phrases: category.sortedPhrases)]
+            return [Self.section(for: category)]
         }
 
         // `.all`, or a category that no longer exists (e.g. deleted while selected).
@@ -48,8 +56,13 @@ final class PhraseBoardViewModel {
             result.append(PhraseSection(id: Self.pinnedSectionID, title: "Pinned", phrases: pinned))
         }
         result += categories
-            .filter { !$0.phrases.isEmpty }
-            .map { PhraseSection(id: $0.id.uuidString, title: $0.name, phrases: $0.sortedPhrases) }
+            .filter { includeEmpty || !$0.phrases.isEmpty }
+            .map(Self.section(for:))
         return result
+    }
+
+    private static func section(for category: PhraseCategory) -> PhraseSection {
+        PhraseSection(id: category.id.uuidString, title: category.name,
+                      phrases: category.sortedPhrases, category: category)
     }
 }

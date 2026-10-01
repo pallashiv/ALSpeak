@@ -65,6 +65,21 @@ final class SpeechCoordinator {
         show(displayedText)
     }
 
+    /// Speaks text for checking how it sounds (e.g. in the phrase editor): no overlay,
+    /// no haptic, no usage recorded.
+    func preview(text: String) {
+        let settings = settings
+        let spoken = TokenResolver.resolveForSpeech(text, tokens: settings.tokens)
+        guard !spoken.isEmpty else { return }
+        speech.voice = VoiceSettings(settings)
+        speech.speak(spoken)
+    }
+
+    /// Token names the user can insert into phrases (keys of `UserSettings.tokens`).
+    var availableTokens: [String] {
+        settings.tokens.keys.sorted()
+    }
+
     func stopSpeaking() {
         speech.stop()
     }

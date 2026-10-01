@@ -59,6 +59,20 @@ struct PhraseBoardViewModelTests {
         #expect(viewModel.sections(for: env, everywhere: []).map(\.title) == ["One"])
     }
 
+    @Test func editModeIncludesEmptyCategoriesAndExposesCategory() {
+        let env = makeEnvironment("E", categories: [("Empty", []), ("One", [Phrase(text: "a")])])
+        let sections = viewModel.sections(for: env, everywhere: [], includeEmpty: true)
+        #expect(sections.map(\.title) == ["Empty", "One"])
+        #expect(sections.allSatisfy { $0.category != nil })
+    }
+
+    @Test func pinnedSectionHasNoCategory() {
+        let env = makeEnvironment("E", categories: [("One", [Phrase(text: "a", isFavorite: true)])])
+        let pinned = viewModel.sections(for: env, everywhere: []).first
+        #expect(pinned?.id == PhraseBoardViewModel.pinnedSectionID)
+        #expect(pinned?.category == nil)
+    }
+
     @Test func categoryFilterShowsOnlyThatCategory() throws {
         let env = makeEnvironment("E", categories: [("One", [Phrase(text: "a")]), ("Two", [Phrase(text: "b")])])
         let two = try #require(env.sortedCategories.last)

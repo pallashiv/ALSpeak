@@ -11,6 +11,8 @@ struct PhraseButton: View {
     var isFavorite = false
     /// Tokens (e.g. "name") this phrase uses that have no value yet.
     var missingTokens: [String] = []
+    /// VoiceOver hint; changes to "Edits this phrase" in edit mode.
+    var accessibilityHint = "Speaks this phrase aloud"
     let action: () -> Void
 
     @ScaledMetric(relativeTo: .title3) private var minHeight: CGFloat = 88
@@ -46,7 +48,7 @@ struct PhraseButton: View {
         }
         .buttonStyle(PressFeedbackButtonStyle())
         .accessibilityLabel(text)
-        .accessibilityHint("Speaks this phrase aloud")
+        .accessibilityHint(accessibilityHint)
         .accessibilityValue(isFavorite ? "Favorite" : "")
     }
 }
