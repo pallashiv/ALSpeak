@@ -1,8 +1,10 @@
-#if DEBUG
 import Foundation
 import SwiftData
 
 /// In-memory container seeded with the real bundled library, for SwiftUI previews.
+///
+/// Not wrapped in `#if DEBUG`: `#Preview` blocks are compiled in Release builds too, so
+/// they need this type to exist there (it's never used at runtime).
 @MainActor
 enum PreviewContainer {
     static let shared: ModelContainer = {
@@ -27,4 +29,3 @@ enum PreviewContainer {
         return environment
     }
 }
-#endif

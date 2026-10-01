@@ -15,6 +15,9 @@ struct ALSpeakApp: App {
         } catch {
             Logger.app.error("Seeding failed: \(error.localizedDescription)")
         }
+        #if DEBUG
+        Self.applyDemoProfileIfRequested(in: container.mainContext)
+        #endif
         self.container = container
         _coordinator = State(initialValue: SpeechCoordinator(speech: SpeechService(), context: container.mainContext))
     }
@@ -26,6 +29,17 @@ struct ALSpeakApp: App {
         }
         .modelContainer(container)
     }
+
+    #if DEBUG
+    /// `-DemoProfile` fills in sample personal details, for screenshots and demo recordings.
+    private static func applyDemoProfileIfRequested(in context: ModelContext) {
+        guard ProcessInfo.processInfo.arguments.contains(LaunchArgument.demoProfile) else { return }
+        let settings = UserSettings.current(in: context)
+        settings.tokens["name"] = "Alex"
+        settings.tokens["caregiverName"] = "Jordan"
+        try? context.save()
+    }
+    #endif
 
     /// The user's voice must never be unavailable. If the on-disk store can't be opened,
     /// fall back to an in-memory store (seeded with the default library) so the app still
@@ -54,6 +68,8 @@ enum LaunchArgument {
     static let openPlace = "-OpenPlace"
     /// Debug only: speak and display text on launch, e.g. `-ShowSpoken "Hello"`.
     static let showSpoken = "-ShowSpoken"
+    /// Debug only: fill in a sample name and caregiver for demos.
+    static let demoProfile = "-DemoProfile"
 }
 
 extension Logger {

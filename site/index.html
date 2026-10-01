@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ALSpeak · A calm, fast voice for people living with ALS</title>
+  <meta name="description" content="ALSpeak is a native iOS speech aid for people living with ALS: pick where you are, tap a phrase, and it's spoken aloud. Built with SwiftUI, accessibility-first.">
+  <meta property="og:title" content="ALSpeak · A calm, fast voice for people living with ALS">
+  <meta property="og:description" content="A native iOS speech aid: pick where you are, tap a phrase, and it's spoken aloud. SwiftUI, SwiftData, offline, accessibility-first.">
+  <meta property="og:image" content="/assets/og.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F7F5F2;
+      --surface: #FFFFFF;
+      --text: #1C1C1E;
+      --muted: #55555C;
+      --hairline: rgba(0, 0, 0, 0.08);
+      --blue: #0D4C9E;
+      --blue-soft: #E0E7F2;
+      --orange-soft: #F2E6DF;
+      --green: #1A6129;
+      --green-soft: #E0EAE2;
+      --red: #A8001A;
+      --red-soft: #F5DFE2;
+      --purple-soft: #E8E2EE;
+      --gold-soft: #F1ECDF;
+      --radius: 24px;
+      --shadow: 0 1px 2px rgba(0,0,0,.04), 0 12px 32px rgba(0,0,0,.07);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0F0F12;
+        --surface: #1C1C1F;
+        --text: #F2F2F4;
+        --muted: #B4B4BC;
+        --hairline: rgba(255, 255, 255, 0.10);
+        --blue: #7FA6DE;
+        --blue-soft: #1E2733;
+        --orange-soft: #2E2420;
+        --green: #84B38D;
+        --green-soft: #1D2A20;
+        --red: #F08A99;
+        --red-soft: #33191D;
+        --purple-soft: #27212E;
+        --gold-soft: #2C2819;
+        --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Nunito", ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-size: 18px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    img, video { display: block; max-width: 100%; }
+    a { color: var(--blue); }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+    h1, h2, h3 { line-height: 1.15; margin: 0; letter-spacing: -0.01em; }
+    h2 { font-size: clamp(28px, 4vw, 40px); font-weight: 800; }
+    h3 { font-size: 21px; font-weight: 800; }
+    p { margin: 0; }
+    .eyebrow { font-weight: 800; color: var(--blue); text-transform: uppercase; letter-spacing: .08em; font-size: 14px; }
+    section { padding: 72px 0; }
+    .section-head { max-width: 680px; margin-bottom: 36px; display: grid; gap: 12px; }
+    .section-head p { color: var(--muted); }
+
+    /* Nav */
+    nav { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--hairline); }
+    nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; color: var(--text); text-decoration: none; }
+    .brand img { width: 34px; height: 34px; }
+    .nav-links { display: flex; gap: 22px; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-weight: 700; font-size: 16px; }
+    .nav-links a:hover { color: var(--text); }
+    @media (max-width: 640px) { .nav-links { display: none; } }
+
+    /* Buttons */
+    .buttons { display: flex; flex-wrap: wrap; gap: 12px; }
+    .btn { display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 26px; border-radius: 999px; font-weight: 800; font-size: 17px; text-decoration: none; transition: transform .1s ease, filter .1s ease; }
+    .btn:active { transform: scale(.97); }
+    .btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+    .btn-primary { background: #0D4C9E; color: #fff; }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--hairline); }
+    .btn-secondary:hover { filter: brightness(.97); }
+    .btn svg { width: 20px; height: 20px; }
+
+    /* Hero */
+    .hero { padding: 56px 0 72px; }
+    .hero .wrap { display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; align-items: center; }
+    .hero-copy { display: grid; gap: 22px; }
+    .hero h1 { font-size: clamp(38px, 6vw, 62px); font-weight: 800; }
+    .hero .lede { font-size: clamp(18px, 2.2vw, 21px); color: var(--muted); max-width: 560px; }
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill { padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 15px; background: var(--surface); border: 1px solid var(--hairline); color: var(--muted); }
+    @media (max-width: 860px) { .hero .wrap { grid-template-columns: 1fr; } .hero-media { order: -1; } }
+
+    /* Phone frame */
+    .phone { position: relative; width: min(330px, 78vw); margin: 0 auto; aspect-ratio: 588 / 1280; border-radius: 52px; padding: 12px; background: #111; box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,.06) inset; }
+    .phone video, .phone img { width: 100%; height: 100%; object-fit: cover; border-radius: 41px; background: #F7F5F2; }
+    .phone.small { width: 100%; max-width: 260px; border-radius: 40px; padding: 9px; }
+    .phone.small img { border-radius: 32px; }
+    .video-toggle { position: absolute; right: -8px; bottom: 32px; width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--hairline); background: var(--surface); color: var(--text); box-shadow: var(--shadow); cursor: pointer; display: grid; place-items: center; }
+    .video-toggle:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+    .video-toggle svg { width: 18px; height: 18px; }
+
+    /* Problem */
+    .problem { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius); padding: 26px; display: grid; gap: 10px; align-content: start; }
+    .card p { color: var(--muted); }
+    .card .num { font-size: 15px; font-weight: 800; color: var(--blue); }
+    @media (max-width: 860px) { .problem { grid-template-columns: 1fr; } }
+
+    /* How it works */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .step { display: grid; gap: 18px; justify-items: center; text-align: center; }
+    .step .label { display: grid; gap: 6px; max-width: 300px; }
+    .step .label p { color: var(--muted); font-size: 16px; }
+    .badge { width: 36px; height: 36px; border-radius: 50%; display: inline-grid; place-items: center; background: #0D4C9E; color: #fff; font-weight: 800; font-size: 17px; margin: 0 auto; }
+    @media (max-width: 860px) { .steps { grid-template-columns: 1fr; gap: 48px; } }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .feature { display: grid; grid-template-columns: 1fr 170px; gap: 22px; align-items: center; border-radius: var(--radius); padding: 26px; }
+    .feature .text { display: grid; gap: 10px; }
+    .feature p { color: var(--muted); font-size: 16.5px; }
+    .feature .phone.small { max-width: 170px; border-radius: 30px; padding: 7px; }
+    .feature .phone.small img { border-radius: 24px; }
+    .tint-blue { background: var(--blue-soft); }
+    .tint-orange { background: var(--orange-soft); }
+    .tint-green { background: var(--green-soft); }
+    .tint-red { background: var(--red-soft); }
+    .tint-purple { background: var(--purple-soft); }
+    .tint-gold { background: var(--gold-soft); }
+    @media (max-width: 960px) { .features { grid-template-columns: 1fr; } }
+    @media (max-width: 520px) { .feature { grid-template-columns: 1fr; } .feature .phone.small { margin: 0 auto; } }
+
+    /* Accessibility */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+    .stat { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius); padding: 22px; }
+    .stat strong { display: block; font-size: 34px; font-weight: 800; line-height: 1.1; color: var(--blue); }
+    .stat span { color: var(--muted); font-size: 16px; }
+    @media (max-width: 860px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+    .a11y-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 28px; padding: 0; margin: 0; list-style: none; }
+    .a11y-list li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; }
+    .a11y-list li::before { content: "✓"; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--green-soft); color: var(--green); font-weight: 800; font-size: 14px; margin-top: 2px; }
+    .a11y-list b { font-weight: 800; }
+    .a11y-list span { color: var(--muted); }
+    @media (max-width: 760px) { .a11y-list { grid-template-columns: 1fr; } }
+
+    /* Gallery */
+    .gallery { display: flex; gap: 18px; overflow-x: auto; padding: 8px 4px 24px; scroll-snap-type: x mandatory; }
+    .gallery figure { margin: 0; flex: 0 0 200px; scroll-snap-align: start; display: grid; gap: 10px; }
+    .gallery figcaption { text-align: center; font-weight: 700; font-size: 15px; color: var(--muted); }
+    .gallery .phone.small { max-width: 200px; }
+
+    /* Tech */
+    .tech { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .tech code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 14.5px; background: var(--bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 6px; }
+    @media (max-width: 860px) { .tech { grid-template-columns: 1fr; } }
+
+    /* CTA + footer */
+    .cta { text-align: center; display: grid; gap: 20px; justify-items: center; background: var(--surface); border: 1px solid var(--hairline); border-radius: 32px; padding: 56px 24px; }
+    .cta p { color: var(--muted); max-width: 560px; }
+    footer { padding: 36px 0 56px; color: var(--muted); font-size: 15px; }
+    footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+    .live-note { font-size: 15px; color: var(--muted); }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <nav aria-label="Main">
+    <div class="wrap">
+      <a class="brand" href="#top"><img src="/assets/icon.png" alt="" width="34" height="34">ALSpeak</a>
+      <div class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#accessibility">Accessibility</a>
+        <a href="#tech">Tech</a>
+      </div>
+    </div>
+  </nav>
+
+  <main id="top">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-copy">
+          <p class="eyebrow">iOS app · Assistive technology</p>
+          <h1>A calm, fast voice for people living with ALS.</h1>
+          <p class="lede">Pick where you are. Tap a phrase. ALSpeak says it out loud and shows it full-screen for the listener — in two taps, with no typing and no scrolling.</p>
+          <div class="buttons">
+            <a class="btn btn-primary js-live" href="#" target="_blank" rel="noopener" hidden>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"/></svg>
+              Try it live
+            </a>
+            <a class="btn btn-secondary" href="https://github.com/pallashiv/ALSpeak" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+              View the code
+            </a>
+          </div>
+          <p class="live-note js-live-note" hidden>The live demo runs the real app in your browser (sound on to hear it speak).</p>
+          <div class="pills" aria-label="Built with">
+            <span class="pill">Swift</span><span class="pill">SwiftUI</span><span class="pill">SwiftData</span><span class="pill">AVSpeechSynthesizer</span><span class="pill">Fully offline</span>
+          </div>
+        </div>
+        <div class="hero-media">
+          <div class="phone">
+            <video class="js-demo" src="/assets/demo.mp4" poster="/assets/poster.jpg" autoplay muted loop playsinline preload="metadata"
+                   aria-label="Screen recording: choosing Restaurant, tapping phrases, quick replies, typing, and the SOS alert"></video>
+            <button class="video-toggle js-toggle" type="button" aria-label="Pause demo video">
+              <svg class="js-icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg>
+              <svg class="js-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" hidden><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Problem -->
+    <section aria-labelledby="why">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Why</p>
+          <h2 id="why">Speaking shouldn't take this much effort.</h2>
+          <p>As ALS progresses, speech and hand movement both get harder. Typing every sentence is slow and tiring, and many communication apps are dense, small and easy to mis-tap.</p>
+        </div>
+        <div class="problem">
+          <div class="card"><span class="num">Speed</span><h3>Two taps to speak</h3><p>Choose the place you're in, then tap a phrase written for that situation. No typing for everyday conversation.</p></div>
+          <div class="card"><span class="num">Effort</span><h3>Big, calm, forgiving</h3><p>Large targets, one category at a time, no sideways scrolling, and protection against tremor and accidental taps.</p></div>
+          <div class="card"><span class="num">Reliability</span><h3>Always works</h3><p>Fully offline, plays even when the phone is on silent, and falls back safely if its data can't load — it is someone's voice.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section id="how" aria-labelledby="how-title">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">How it works</p>
+          <h2 id="how-title">Where are you? → What do you want to say?</h2>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="phone small"><img src="/assets/01-home.jpg" alt="Home screen asking 'Where are you?' with cards for Home, Doctor, Restaurant, Out & About, Family & Friends and Emergency" loading="lazy" width="640" height="1391"></div>
+            <div class="label"><span class="badge">1</span><h3>Pick a place</h3><p>Soft, high-contrast cards for the places you go. Add your own, like Church or Work.</p></div>
+          </div>
+          <div class="step">
+            <div class="phone small"><img src="/assets/02-board.jpg" alt="Restaurant phrases: I'd like to order now, Could I see the menu?, and more, with category tabs" loading="lazy" width="640" height="1391"></div>
+            <div class="label"><span class="badge">2</span><h3>Tap a phrase</h3><p>Natural, first-person phrases grouped into big tabs. Yes / No are always one tap away.</p></div>
+          </div>
+          <div class="step">
+            <div class="phone small"><img src="/assets/03-spoken.jpg" alt="The phrase 'Could I see the menu?' shown in very large text with Stop and Close buttons" loading="lazy" width="640" height="1391"></div>
+            <div class="label"><span class="badge">3</span><h3>It's spoken and shown</h3><p>Said aloud right away, with a haptic tap, and displayed full-screen so the listener can read it too.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" aria-labelledby="features-title">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Features</p>
+          <h2 id="features-title">Everything within reach, nothing in the way.</h2>
+        </div>
+        <div class="features">
+          <article class="feature tint-green">
+            <div class="text"><h3>Quick replies on every screen</h3><p>✓ Yes and ✕ No are pinned to the bottom of every screen. <b>More</b> opens the rest — Maybe, Thank you, Wait a moment — with no scrolling.</p></div>
+            <div class="phone small"><img src="/assets/04-more.jpg" alt="Bottom bar with Yes, No and More, and the More panel open showing other replies" loading="lazy" width="640" height="1391"></div>
+          </article>
+          <article class="feature tint-red">
+            <div class="text"><h3>SOS that can't go off by accident</h3><p>Hold for one second to sound a loud, repeated emergency message with a red alert screen. VoiceOver and Switch Control users activate it directly.</p></div>
+            <div class="phone small"><img src="/assets/08-emergency.jpg" alt="Red emergency screen reading 'I need help, please come here now.'" loading="lazy" width="640" height="1391"></div>
+          </article>
+          <article class="feature tint-blue">
+            <div class="text"><h3>Type when nothing fits</h3><p>Type-to-speak with suggestions and recent messages. One tap saves what you typed as a new phrase in the place you're in.</p></div>
+            <div class="phone small"><img src="/assets/06-type.jpg" alt="Type to Speak screen with 'Can we go for a walk later?' typed, and Speak and Save buttons" loading="lazy" width="640" height="1391"></div>
+          </article>
+          <article class="feature tint-gold">
+            <div class="text"><h3>Made personal</h3><p>Favorites, phrases that follow you everywhere, and details like <b>{name}</b> filled in when spoken. Caregivers can add, edit and reorder anything.</p></div>
+            <div class="phone small"><img src="/assets/05-favorites.jpg" alt="Family & Friends favorites: I love you, I have ALS, and My name is Alex" loading="lazy" width="640" height="1391"></div>
+          </article>
+          <article class="feature tint-purple">
+            <div class="text"><h3>Simple editing for caregivers</h3><p>An Edit mode right on each board: tap a phrase to change it, add phrases to any category, and organize categories and places.</p></div>
+            <div class="phone small"><img src="/assets/07-edit.jpg" alt="Phrase board in edit mode with a 'Tap a phrase to change it' banner and a Categories button" loading="lazy" width="640" height="1391"></div>
+          </article>
+          <article class="feature tint-orange">
+            <div class="text"><h3>Your voice, your way</h3><p>Choose any iOS voice — including your own recorded <b>Personal Voice</b> — and set speed, pitch and volume with big − / + buttons.</p></div>
+            <div class="phone small"><img src="/assets/09-settings.jpg" alt="Settings with voice, speed, pitch and volume controls" loading="lazy" width="640" height="1391"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Accessibility -->
+    <section id="accessibility" aria-labelledby="a11y-title">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Accessibility first</p>
+          <h2 id="a11y-title">Designed for limited speech and limited movement.</h2>
+          <p>Accessibility isn't a settings page here — it shaped every screen, and it's tested automatically.</p>
+        </div>
+        <div class="stats">
+          <div class="stat"><strong>145</strong><span>automated tests, incl. UI tests with Apple's accessibility audit</span></div>
+          <div class="stat"><strong>AAA</strong><span>WCAG contrast for phrase text, light and dark</span></div>
+          <div class="stat"><strong>2 taps</strong><span>from launch to speaking a common phrase</span></div>
+          <div class="stat"><strong>0</strong><span>sideways scrolling anywhere in the app</span></div>
+        </div>
+        <ul class="a11y-list">
+          <li><div><b>Tap, hold or dwell.</b> <span>Hold-to-select ignores brushes and tremor; dwell works with head, eye and AssistiveTouch pointers.</span></div></li>
+          <li><div><b>Tremor filtering.</b> <span>A second tap within 0.4 s is ignored, so a shaky double-tap doesn't speak twice.</span></div></li>
+          <li><div><b>VoiceOver, Switch Control, Voice Control.</b> <span>Every control is labelled; phrase grids scan as groups.</span></div></li>
+          <li><div><b>Dynamic Type.</b> <span>Text scales to the largest sizes; the always-visible bar offers the Large Content Viewer instead.</span></div></li>
+          <li><div><b>High contrast.</b> <span>A black-and-yellow theme, also switched on by iOS Increase Contrast.</span></div></li>
+          <li><div><b>60 pt+ targets.</b> <span>Big buttons with clear pressed states and haptic confirmation.</span></div></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Gallery -->
+    <section aria-labelledby="gallery-title">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Screens</p>
+          <h2 id="gallery-title">A closer look</h2>
+        </div>
+        <div class="gallery" tabindex="0" aria-label="Screenshots, scroll sideways">
+          <figure><div class="phone small"><img src="/assets/01-home.jpg" alt="Home screen" loading="lazy" width="640" height="1391"></div><figcaption>Home</figcaption></figure>
+          <figure><div class="phone small"><img src="/assets/02-board.jpg" alt="Restaurant phrase board" loading="lazy" width="640" height="1391"></div><figcaption>Phrase board</figcaption></figure>
+          <figure><div class="phone small"><img src="/assets/03-spoken.jpg" alt="Spoken phrase full-screen" loading="lazy" width="640" height="1391"></div><figcaption>Shown for the listener</figcaption></figure>
+          <figure><div class="phone small"><img src="/assets/04-more.jpg" alt="More quick replies" loading="lazy" width="640" height="1391"></div><figcaption>Quick replies</figcaption></figure>
+          <figure><div class="phone small"><img src="/assets/06-type.jpg" alt="Type to speak" loading="lazy" width="640" height="1391"></div><figcaption>Type to speak</figcaption></figure>
+          <figure><div class="phone small"><img src="/assets/08-emergency.jpg" alt="Emergency alert" loading="lazy" width="640" height="1391"></div><figcaption>SOS alert</figcaption></figure>
+          <figure><div class="phone small"><img src="/assets/10-touch.jpg" alt="Touch and display settings with tap, hold and dwell options" loading="lazy" width="640" height="1391"></div><figcaption>Touch modes</figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tech -->
+    <section id="tech" aria-labelledby="tech-title">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Under the hood</p>
+          <h2 id="tech-title">Native, offline, and tested.</h2>
+        </div>
+        <div class="tech">
+          <div class="card"><h3>Stack</h3><p>Swift and SwiftUI for iOS 17+, SwiftData for storage, <code>AVSpeechSynthesizer</code> for on-device speech. No accounts, no backend, no network.</p></div>
+          <div class="card"><h3>Architecture</h3><p>MVVM. A single <code>SpeechCoordinator</code> handles every spoken phrase; <code>SpeechService</code> wraps the synthesizer behind a protocol for interrupt, queue, stop and emergency.</p></div>
+          <div class="card"><h3>Testing</h3><p>Swift Testing for models, seeding, speech and view models; XCUITest flows with <code>performAccessibilityAudit()</code>; exact WCAG contrast checks for every color pair.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section aria-labelledby="cta-title">
+      <div class="wrap">
+        <div class="cta">
+          <img src="/assets/icon.png" alt="" width="72" height="72">
+          <h2 id="cta-title">See it for yourself</h2>
+          <p>Try the real app in your browser, or read through the source on GitHub.</p>
+          <div class="buttons" style="justify-content:center">
+            <a class="btn btn-primary js-live" href="#" target="_blank" rel="noopener" hidden>Try it live</a>
+            <a class="btn btn-secondary" href="https://github.com/pallashiv/ALSpeak" target="_blank" rel="noopener">View the code on GitHub</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>ALSpeak · built by <a href="https://github.com/pallashiv" target="_blank" rel="noopener">@pallashiv</a></span>
+      <span>Demo recorded in the iOS Simulator.</span>
+    </div>
+  </footer>
+
+  <script>
+    // Live demo link (Appetize.io). Leave empty to hide the "Try it live" buttons.
+    const LIVE_DEMO_URL = "";
+
+    if (LIVE_DEMO_URL) {
+      document.querySelectorAll(".js-live").forEach(a => { a.href = LIVE_DEMO_URL; a.hidden = false; });
+      document.querySelectorAll(".js-live-note").forEach(p => { p.hidden = false; });
+    }
+
+    // Demo video: respect reduced motion, and offer a pause button (WCAG 2.2.2).
+    const video = document.querySelector(".js-demo");
+    const toggle = document.querySelector(".js-toggle");
+    const pauseIcon = document.querySelector(".js-icon-pause");
+    const playIcon = document.querySelector(".js-icon-play");
+    function syncToggle() {
+      const paused = video.paused;
+      pauseIcon.hidden = paused;
+      playIcon.hidden = !paused;
+      toggle.setAttribute("aria-label", paused ? "Play demo video" : "Pause demo video");
+    }
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      video.removeAttribute("autoplay");
+      video.pause();
+    }
+    toggle.addEventListener("click", () => { video.paused ? video.play() : video.pause(); });
+    video.addEventListener("play", syncToggle);
+    video.addEventListener("pause", syncToggle);
+    syncToggle();
+  </script>
+</body>
+</html>
