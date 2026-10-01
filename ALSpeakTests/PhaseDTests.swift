@@ -107,6 +107,23 @@ struct TypeToSpeakViewModelTests {
     }
 }
 
+// MARK: - Quick Respond layout
+
+struct QuickRespondLayoutTests {
+    @Test func firstTwoRepliesAreInlineTheRestGoUnderMore() {
+        let split = QuickRespondLayout.split(["Yes", "No", "Maybe", "Thank you"])
+        #expect(split.inline == ["Yes", "No"])
+        #expect(split.more == ["Maybe", "Thank you"])
+    }
+
+    @Test func fewRepliesAllFitInline() {
+        let split = QuickRespondLayout.split(["Yes"])
+        #expect(split.inline == ["Yes"])
+        #expect(split.more.isEmpty)
+        #expect(QuickRespondLayout.split([]).inline.isEmpty)
+    }
+}
+
 // MARK: - Settings helpers
 
 struct VoiceOptionTests {

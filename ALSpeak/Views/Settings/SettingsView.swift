@@ -285,7 +285,7 @@ struct SettingsView: View {
                     .textCase(nil)
             }
         } footer: {
-            Text("Shown at the bottom of every screen. Tap Edit to reorder.")
+            Text("The first two are always on the bar at the bottom of the screen; the rest are under More. Tap Edit to reorder.")
         }
     }
 
