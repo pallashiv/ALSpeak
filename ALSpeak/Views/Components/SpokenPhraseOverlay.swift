@@ -5,6 +5,8 @@ import SwiftUI
 struct SpokenPhraseOverlay: View {
     let text: String
     let isSpeaking: Bool
+    /// Emergency alerts use a red background.
+    var isEmergency = false
     let onRepeat: () -> Void
     let onStop: () -> Void
     let onClose: () -> Void
@@ -13,13 +15,18 @@ struct SpokenPhraseOverlay: View {
 
     var body: some View {
         ZStack {
-            Palette.overlayBackground
+            (isEmergency ? Palette.environmentColor("red") : Palette.overlayBackground)
                 .ignoresSafeArea()
                 .onTapGesture(perform: onClose)
                 .accessibilityHidden(true)
 
             VStack(spacing: 24) {
                 Spacer(minLength: 0)
+                if isEmergency {
+                    Label("EMERGENCY", systemImage: "exclamationmark.triangle.fill")
+                        .font(.title.weight(.heavy))
+                        .foregroundStyle(Palette.overlayText)
+                }
                 Text(text)
                     .font(.system(size: 56, weight: .bold, design: .rounded))
                     .minimumScaleFactor(0.3)
@@ -55,7 +62,12 @@ struct SpokenPhraseOverlay: View {
     }
 }
 
-#Preview {
+#Preview("Phrase") {
     SpokenPhraseOverlay(text: "Could you check the bill, please?", isSpeaking: true,
+                        onRepeat: {}, onStop: {}, onClose: {})
+}
+
+#Preview("Emergency") {
+    SpokenPhraseOverlay(text: "I need help, please come here now.", isSpeaking: false, isEmergency: true,
                         onRepeat: {}, onStop: {}, onClose: {})
 }

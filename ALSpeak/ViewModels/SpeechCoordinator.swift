@@ -7,13 +7,15 @@ import SwiftData
 /// Speaking a phrase involves several steps that must always happen together:
 /// fill in personal tokens → apply voice settings → speak → haptic → show the text
 /// full-screen for the listener → record usage. Keeping them here means every button
-/// (phrase board, favorites, and later Quick Respond and type-to-speak) behaves identically.
+/// (phrase board, favorites, Quick Respond, type-to-speak, emergency) behaves identically.
 @MainActor
 @Observable
 final class SpeechCoordinator {
     let speech: SpeechService
     /// Text currently shown full-screen for the listener; nil when the overlay is hidden.
     private(set) var displayedText: String?
+    /// True while the overlay shows the emergency alert (red, and it stays until closed).
+    private(set) var isDisplayingEmergency = false
 
     @ObservationIgnored private let context: ModelContext
     @ObservationIgnored private let haptics: HapticsProviding
@@ -38,14 +40,15 @@ final class SpeechCoordinator {
     // MARK: Speaking
 
     /// Speaks a stored phrase and records that it was used.
-    func speak(_ phrase: Phrase) {
+    /// - Parameter showOverlay: false where the text is already on screen (type-to-speak).
+    func speak(_ phrase: Phrase, showOverlay: Bool = true) {
         phrase.markUsed()
         try? context.save()
-        speak(text: phrase.text)
+        speak(text: phrase.text, showOverlay: showOverlay)
     }
 
     /// Speaks arbitrary text (may contain tokens).
-    func speak(text: String) {
+    func speak(text: String, showOverlay: Bool = true) {
         let settings = settings
         let spoken = TokenResolver.resolveForSpeech(text, tokens: settings.tokens)
         guard !spoken.isEmpty else { return }
@@ -53,12 +56,31 @@ final class SpeechCoordinator {
         speech.voice = VoiceSettings(settings)
         speech.speak(spoken)
         haptics.phraseSpoken()
-        show(spoken)
+        if showOverlay {
+            show(spoken)
+        }
+    }
+
+    /// Sounds the emergency alert: interrupts everything, speaks the configured phrase at
+    /// full volume the configured number of times, and shows it in red until closed.
+    func speakEmergency() {
+        let settings = settings
+        var text = TokenResolver.resolveForSpeech(settings.emergencyPhrase, tokens: settings.tokens)
+        if text.isEmpty { text = "I need help, please come here now." }
+
+        speech.voice = VoiceSettings(settings)
+        speech.speakEmergency(text, repeatCount: settings.emergencyRepeatCount)
+        haptics.emergency()
+        show(text, isEmergency: true)
     }
 
     /// Repeats whatever is currently on screen (for a listener who missed it).
     func repeatDisplayed() {
         guard let displayedText else { return }
+        if isDisplayingEmergency {
+            speakEmergency()
+            return
+        }
         speech.voice = VoiceSettings(settings)
         speech.speak(displayedText)
         haptics.phraseSpoken()
@@ -101,13 +123,16 @@ final class SpeechCoordinator {
     func dismissDisplay() {
         dismissTask?.cancel()
         displayedText = nil
+        isDisplayingEmergency = false
     }
 
     /// Shows the text and hides it automatically once speech has ended and the listener
-    /// has had a moment to finish reading.
-    private func show(_ text: String) {
+    /// has had a moment to finish reading. Emergency alerts stay up until closed.
+    private func show(_ text: String, isEmergency: Bool = false) {
         displayedText = text
+        isDisplayingEmergency = isEmergency
         dismissTask?.cancel()
+        guard !isEmergency else { return }
         dismissTask = Task { [weak self, minimumDisplayTime, lingerAfterSpeech] in
             do {
                 try await Task.sleep(for: minimumDisplayTime)
@@ -119,6 +144,7 @@ final class SpeechCoordinator {
                 return // cancelled: a newer phrase took over the overlay
             }
             self?.displayedText = nil
+            self?.isDisplayingEmergency = false
         }
     }
 }

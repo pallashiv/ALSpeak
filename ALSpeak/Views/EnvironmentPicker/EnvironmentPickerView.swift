@@ -7,6 +7,8 @@ struct EnvironmentPickerView: View {
     @Query(filter: #Predicate<Phrase> { $0.isFavorite }) private var favorites: [Phrase]
 
     @Environment(SpeechCoordinator.self) private var coordinator
+    @Environment(\.modelContext) private var context
+    @State private var isShowingSettings = false
     @State private var viewModel = EnvironmentPickerViewModel()
     @State private var isManagingEnvironments = false
 
@@ -53,6 +55,16 @@ struct EnvironmentPickerView: View {
         }
         .navigationTitle("ALSpeak")
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    isShowingSettings = true
+                } label: {
+                    Label("Settings", systemImage: "gearshape.fill")
+                        .labelStyle(.titleAndIcon)
+                }
+                .font(.headline)
+                .accessibilityHint("Voice, personal details, emergency message and quick replies")
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Edit Places") {
                     isManagingEnvironments = true
@@ -63,6 +75,9 @@ struct EnvironmentPickerView: View {
         }
         .sheet(isPresented: $isManagingEnvironments) {
             ManageEnvironmentsView()
+        }
+        .sheet(isPresented: $isShowingSettings) {
+            SettingsView(settings: UserSettings.current(in: context))
         }
     }
 

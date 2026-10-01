@@ -56,6 +56,9 @@ final class UserSettings {
     var emergencyPhrase: String = "I need help, please come here now."
     /// How many times the emergency phrase is repeated per press.
     var emergencyRepeatCount: Int = 2
+    /// When true the Emergency button must be held for a moment, so a tremor or a brush
+    /// of the hand doesn't sound the alarm. VoiceOver / Switch Control activate it directly.
+    var emergencyRequiresHold: Bool = true
 
     // MARK: Personalization
 
@@ -63,6 +66,8 @@ final class UserSettings {
     var tokens: [String: String] = [:]
     /// Replies shown in the Quick Respond bar, in order.
     var quickResponses: [String] = []
+    /// Most recent type-to-speak texts, newest first (capped, see `TypeToSpeakViewModel`).
+    var recentTypedTexts: [String] = []
 
     // MARK: Touch & display
 
